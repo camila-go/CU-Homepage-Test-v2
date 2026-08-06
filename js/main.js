@@ -318,9 +318,6 @@ const TEXT_REVEAL_SELECTORS = [
   '.hero__title',
   '.program-finder__title',
   '.stats-section__title',
-  '.tiles-section__title',
-  '.action-cta__title',
-  '.accreditation__title',
 ];
 
 // Wrap every word of an element in a clip-masked span so it can slide up from
@@ -592,6 +589,10 @@ function initCardScroll() {
 
   const START_OFFSET = 45; // % of card width — where the card starts, off-right
 
+  // Ratchet: once the card has slid in this far, never let it slide back out
+  // again on an upward scroll. Only forward (scrolling down) progress counts.
+  let revealed = START_OFFSET;
+
   let ticking = false;
   const update = () => {
     ticking = false;
@@ -609,10 +610,56 @@ function initCardScroll() {
       const e = Math.min(Math.max((vh - rect.top) / (vh * 0.9), 0), 1);
       x = (1 - e) * START_OFFSET;
     }
-    const value = `${x.toFixed(2)}% 0`;
+    revealed = Math.min(revealed, x); // ratchet: only ever move toward 0
+    const value = `${revealed.toFixed(2)}% 0`;
     cards.forEach((c) => {
       c.style.translate = value;
     });
+  };
+
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(update);
+  };
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  update();
+}
+
+// Scroll-driven upward parallax for hero content and program-finder: as you
+// scroll down, these sections move up, layering above the people. The offset
+// tracks how far each element has scrolled up the viewport.
+function initContentParallax() {
+  if (prefersReducedMotion) return;
+
+  const heroContent = document.querySelector('.hero__content');
+  const programFinder = document.querySelector('.program-finder');
+  if (!heroContent && !programFinder) return;
+
+  // Drive both off window.scrollY, NOT off each element's viewport position.
+  // Deriving the offset from `vh - rect.top` is non-zero the moment an element
+  // is on screen, so at scrollY 0 the hero content started ~100px above its
+  // laid-out position — the headline rode up off the torsos and the button
+  // covered the faces. Keyed to scrollY, both sit exactly where they're laid
+  // out at the top of the page and only drift as you actually scroll.
+  const MAX = 120; // px of travel, so the text can't wander far from its art
+
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const y = window.scrollY || document.documentElement.scrollTop || 0;
+
+    if (heroContent) {
+      const offset = Math.min(y * 0.2, MAX);
+      heroContent.style.translate = `0 ${-offset.toFixed(2)}px`;
+    }
+
+    if (programFinder) {
+      const offset = Math.min(y * 0.2, MAX);
+      programFinder.style.translate = `0 ${-offset.toFixed(2)}px`;
+    }
   };
 
   const onScroll = () => {
@@ -630,11 +677,28 @@ function initNavScroll() {
   const nav = document.querySelector('.main-nav');
   if (!nav) return;
 
-  const onScroll = () => {
-    nav.classList.toggle('main-nav--scrolled', window.scrollY > 24);
+  // Hysteresis (enter above 40px, exit below 16px) so hovering near a single
+  // threshold — trackpad momentum, rubber-banding — can't flicker the class
+  // on/off. The CSS transition on .main-nav / .main-nav__bar smooths the
+  // height change itself; this stops it from being retriggered rapidly.
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const scrolled = nav.classList.contains('main-nav--scrolled');
+    if (!scrolled && window.scrollY > 40) {
+      nav.classList.add('main-nav--scrolled');
+    } else if (scrolled && window.scrollY < 16) {
+      nav.classList.remove('main-nav--scrolled');
+    }
   };
 
-  onScroll();
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(update);
+  };
+
+  update();
   window.addEventListener('scroll', onScroll, { passive: true });
 }
 
@@ -699,6 +763,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initParallax();
   initHeroParallax();
   initCardScroll();
+  initContentParallax();
   initNavScroll();
   initMobileNav();
   initCtaVideos();

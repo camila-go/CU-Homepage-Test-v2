@@ -65,6 +65,14 @@
     rgba(255, 255, 255, 0) 60%
   );
 
+  /* Nav interaction states. The nav sits on near-black, so hover/press read as
+     progressively stronger white washes, and focus is a plain white ring. */
+  --nav-pill-radius: 100px;
+  --nav-pill-hover: rgba(255, 255, 255, 0.12);
+  --nav-pill-active: rgba(255, 255, 255, 0.22);
+  --nav-focus-ring: 2px solid var(--color-white);
+  --nav-focus-offset: 2px;
+
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --duration-fast: 0.2s;
   --duration-med: 0.45s;

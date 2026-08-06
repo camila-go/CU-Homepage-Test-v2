@@ -1,10 +1,22 @@
-# Developer Handoff — Capella University Homepage
+# Developer Handoff — Capella University Homepage (v2)
 
 Engineering notes for anyone picking up this build. Covers the toolchain, the
 animation system, responsive behavior, accessibility, asset handling, and the
 edge cases / gotchas that aren't obvious from the code alone.
 
 > See also: [`README.md`](README.md) for the quick-start.
+
+**This is the second version of the homepage**, living at
+[`camila-go/CU-Homepage-Test-v2`](https://github.com/camila-go/CU-Homepage-Test-v2).
+What changed from v1, and where the details are:
+
+| Area | Change | §  |
+| --- | --- | --- |
+| Featured-story cards | Rebuilt to the **Card Update** Figma (`1440 × 600`, new copy and people, Figma-variable type scale, portraits that break out above the card) | §3, §6 |
+| Hero | Two-layer red-wall parallax + ambient drift; `initContentParallax` rewritten to be scroll-keyed so the headline no longer rides up over the faces | §3a, §7 |
+| Carousel motion | Scroll-driven, ratcheted card slide-in + staggered card text | §7 |
+| Nav | Rounded pill hover with full press / keyboard-focus states; scroll shrink now uses hysteresis | §5 |
+| Assets | Carousel portraits re-cut as transparent WebP (2.5 MB of PNGs → 136 KB); hero split into WebP layers | §3 |
 
 ---
 
@@ -71,6 +83,16 @@ people (who must stay put — see §5 / §7 `initHeroParallax`):
   longer referenced at runtime. `.hero__background` has a `background-color`
   (wall red) so the hero never flashes black before the layers paint.
 
+⚠️ **Don't add a mobile override for the people layer's size.** `object-fit:
+cover` is already right at portrait aspect ratios — at 375×360 it renders the
+2.11:1 source 759px wide, putting the group at ~94% of the hero width with the
+heads ~17% down and the legs cropped at the hero's bottom edge, which is the
+Figma mobile composition. If the mobile hero ever looks wrong, check
+`initContentParallax` (§7) **first**: when it displaces `.hero__content` at
+rest, the headline rides up off the torsos and the CTA lands on the faces, which
+reads as "the people are wrong" when the art is actually fine. Sizing the layer
+to a fixed percentage to compensate makes the people smaller than the design.
+
 ⚠️ **The wall reconstruction must preserve real texture in the margins, not
 just patch the gap.** A first attempt filled the people-shaped gap, then blurred
 the *entire* canvas to hide the seam — which also blurred the margins (the only
@@ -95,16 +117,26 @@ regenerating, sanity-check texture is visible in the margins (not just the
 gap) — e.g. crop a clearly-people-free region and eyeball it; a flat/smooth
 result there means the parallax will be invisible again.
 
-- **Cache-busting query strings:** Some `<img src>` values carry `?v=N`
-  (e.g. `carousel-portrait-alumni.png?v=8`). These were bumped each time an
-  asset on disk was replaced to defeat browser/Vite caching. If you replace one
-  of these images, **bump the number**.
-- **Kenny (alumni portrait) is a transparent PNG.** It must stay a true
-  transparent PNG. A prior version got silently flattened to a JPEG with a baked
-  black background during an export/upload step, which looked broken on the
-  dark card. If you see a black box behind him, the asset itself is wrong — not
-  the CSS. Verify with `file public/assets/carousel-portrait-alumni.png` and
-  `sips -g all <file>`.
+- **Cache-busting query strings:** Some `<img src>` values carry `?v=N`. These
+  were bumped each time an asset on disk was replaced to defeat browser/Vite
+  caching. If you replace one of these images, **bump the number**.
+- **Carousel portraits are transparent WebP, cut at the exact card scale, and
+  are TALLER than the card on purpose.** `carousel-portrait-alumni.webp`
+  (720×**641**, Dr. Compton Moore) and `carousel-portrait-faculty.webp`
+  (786×**628**, Lisa Kraeger) were extracted from the Card Update Figma render
+  at 1:1 with the 1440×600 card, with the panel background keyed out. The extra
+  height is the part of each person that **breaks out above the card's top
+  edge** — 41px alumni, 28px faculty — so the CSS positions them at a negative
+  `top` and the card keeps `overflow: visible`. The phone on the student slide
+  does the same (41px). Do not "fix" the overflow or re-crop these to 600.
+  Because they are already card-scale, the desktop CSS drops them in at
+  `left: 0` with `object-fit: fill` and **no** cropping or `object-position`
+  tricks. They must stay truly transparent; a gray or black box behind a
+  portrait means the asset was flattened on export, not a CSS bug.
+  These are 1× extractions from the Figma render (the Figma MCP's
+  `get_design_context`, which serves the original asset URLs, was erroring); for
+  production, re-export the originals from Figma at 2× and keep the same pixel
+  dimensions doubled.
 - **Asset aspect ratios are tuned to their CSS slots.** The carousel portrait
   crops rely on each asset's ratio being close to its slot ratio (so
   `object-position: bottom` doesn't clip heads, and the alumni `object-fit: fill`
@@ -134,7 +166,7 @@ Mobile-first base styles, with these override breakpoints (see `styles.css`):
 | `max-width: 1023px` | **Phone/tablet carousel layout** (fixed `294 × 583` aspect card, absolutely-positioned elements scaled via container query) |
 | `max-width: 1024px` | Tablet: hamburger nav, **program-finder top is the row layout** (title beside 2×2 chips) |
 | `min-width: 641px and max-width: 1199px` | **Tablet/large-phone hero**: floor raised to **520px** (capped `--hero-height-tablet-max` = 640) — the headline is ~98px here, so a short hero would let it ride onto the faces; the 520 floor keeps it on the torsos (finder scrolls below the fold on short viewports, like mobile) |
-| `min-width: 1024px` | **Wide carousel layout** (`1440 × 642` card, Kenny/faculty overflow above the card) |
+| `min-width: 1024px` | **Wide carousel layout** (`1440 × 600` card; the portraits and the phone overflow above the card top) |
 | `min-width: 1200px` | Desktop refinements: hero capped at **755px** (`--hero-height`, Figma) + 4-across program-finder chips, content-band bg crop, etc. |
 | `max-width: 1280px` / `min-width: 1920px` | `--page-gutter` adjustments only (in `tokens.css`) |
 
@@ -168,9 +200,37 @@ header total is **~128px** (40 + 88), not 168 — note the hero
 nav (desktop 360→320, tablet 460→420), so the hero now reaches its 755px cap on
 standard desktops (≥~1075px tall) while the program finder stays above the fold.
 
-`initNavScroll()` toggles `.main-nav--scrolled` after 24px of scroll (shrinks
-the nav). `z-index: 100/101` on the header sits above the parallax band
-(`z-index: 1`) and carousel content — keep new stacking contexts below 100.
+`initNavScroll()` toggles `.main-nav--scrolled` (shrinks the nav) using
+**hysteresis — on above 40px, off below 16px**, not one 24px threshold. A single
+threshold made the nav flicker whenever the scroll position hovered on it
+(trackpad momentum, rubber-banding), and the height change is transitioned, so
+each flip was visible. Keep the two thresholds apart. `z-index: 100/101` on the
+header sits above the parallax band (`z-index: 1`) and carousel content — keep
+new stacking contexts below 100.
+
+### Nav interaction states
+
+Every interactive element in the header has hover / press / keyboard-focus
+feedback, built from four tokens in `tokens.css` (`--nav-pill-hover`,
+`--nav-pill-active`, `--nav-focus-ring`, `--nav-pill-radius`) so they stay
+consistent — change the token, not the individual rules.
+
+- **Links get a rounded pill on hover** (main nav, utility bar, mobile panel),
+  a stronger fill plus a slight scale-down on `:active`, and a white
+  `:focus-visible` ring. The logo and hamburger have their own equivalents.
+- ⚠️ **The pill's padding replaces the list gap — don't "restore" the gap.**
+  `.main-nav__links` went from `gap: 30px` to `gap: 2px` when the links took on
+  `padding: 8px 14px`, which keeps text-to-text spacing at the same 30px
+  *without widening the bar*. Adding the gap back overflows the bar at ~1025px.
+  The same trick is in the utility bar: `.utility-bar__inner`'s `padding-left`
+  is `5px` (not the Figma's 15px) because the links now carry 10px of their own,
+  so the **text** still starts at 15px.
+- `.main-nav__links a` is `inline-flex` on purpose: `transform` is ignored on
+  inline non-replaced boxes, so the press state would silently do nothing.
+- The mobile hamburger is a bare icon at rest but keeps `border-radius: 50%`,
+  so its hover / press / open fills render as a circle rather than a square.
+- Press feedback (the only motion) is disabled under `prefers-reduced-motion`;
+  hover and focus colours still apply so nothing loses its affordance.
 
 ### Hero height is "fill the fold" (keeps the program finder above the fold)
 
@@ -222,29 +282,48 @@ heads on wide viewports. If you ever reintroduce one, re-check head-cropping at
     - **Don't use fluid font scaling for the card body text here** — it was
       capped to a fixed size because large fluid text overflowed the fixed-height
       card.
-  - **≥1024px:** card is `1440 × 642` aspect with `overflow: visible`, so the
+  - **≥1024px:** card is `1440 × 600` — the card **is** the panel (the old
+    `1440 × 642` box with a 42px top inset is gone). `overflow: visible`, so the
     portrait figures intentionally **extend above** the card top.
     - **Content is anchored to exact Figma coordinates**, not flex gaps. Each
       slide's content (`--student` / `--alumni` / `--faculty` modifier on
       `.carousel__content`) absolutely positions its title / body / attribution /
-      button at the Figma `y` (e.g. faculty title `184`, attribution `348`,
-      button `472`) via the `--px` unit. This avoids vertical drift from
-      accumulated line-height.
-    - **Buttons** ("Button text", "Full bio") are scaled to the Figma `60px`
-      pill (`padding 16/28`, `font 20`, `radius 32`) via `--px` — do **not** let
-      them fall back to the unscaled `.btn--lg`, which stretches full-width.
-    - **Portrait sizing.** The shared `.carousel__portrait` box is the literal
-      Figma slot (`x84 y0 741×642`) with **no** scale. **Faculty** uses its own
-      exact dims (`x60 y-15 660×657`, no scale) — do not let it inherit a scale
-      or it renders ~17% too big. **Alumni** alone adds `scale: 1.17` + `top:
-      -3rem` to match the design's zoomed-in framing of Kenny (head/torso
-      prominent, rising above the card). The scale is intentionally
-      alumni-scoped — keep it off the base rule so faculty stays correct.
+      button at the Figma `y` via the `--px` unit, which avoids vertical drift
+      from accumulated line-height. Measured off the Card Update render:
+
+      | | title | body / attribution | button |
+      |---|---|---|---|
+      | student | 184 | 254 | 346 |
+      | alumni | 184 | name 374 · role 412 · disclaimer 469 | — |
+      | faculty | 184 | name 337 · role 375 | 463 |
+
+      All three content columns start at `x 758` and are `600` wide (the student
+      body alone is `557`, which is what makes it wrap where the design does).
+    - **Type scale comes from the Figma file's own variables** — quote `20`
+      Inter *italic* / 1.5, body `16`, name `40` Acumin Extra Condensed
+      Semibold / 0.9 uppercase, role `16`, disclaimer `12` italic, button `20`
+      bold. The quote is **not** the big condensed display face; if it starts
+      rendering as large uppercase display type, a `.carousel__title` override
+      has crept back in.
+    - **Buttons** ("Is FlexPath right for you?", "Full bio") are scaled to the
+      Figma `60px` pill (`padding 16/28`, `font 20`, `radius 32`) via `--px` —
+      do **not** let them fall back to the unscaled `.btn--lg`, which stretches
+      full-width.
+    - **Portrait sizing.** The assets are pre-cut at exact card scale, so each
+      `.carousel__portrait` is simply `left: 0` at its asset's own dimensions
+      with `object-fit: fill` and a **negative `top`** for the overhang (alumni
+      `-41`, faculty `-28`). There are no crop slots, scales or
+      `object-position` tricks any more — if you find yourself adding one, the
+      asset is probably the wrong size. See §3 for the asset contract.
+    - **The faculty attribution needs an explicit `width`.** Its children are
+      absolutely positioned, so without it they inherit the wrapper's
+      shrink-to-fit width (the name) and the two-line role wraps into a narrow
+      column.
 - **People are bottom-anchored at every width.** Portrait containers pin to the
-  card's bottom edge, and the images use `object-position: center bottom`. The
-  alumni image uniquely uses `object-fit: fill` (its ratio matches the slot, so
-  it fills without visible warp); everything else uses `object-fit: cover`.
-  If figures float off the bottom after an edit, check these two properties.
+  card's bottom edge. Below 1024 the images use `object-fit: cover` with
+  `object-position: center bottom`; at ≥1024 the pre-cut assets sit 1:1 with
+  `object-fit: fill`. If figures float off the bottom after an edit, check these
+  two properties.
 - `goTo(activeIndex, false)` re-runs on `resize` to recompute the step width.
 
 ---
@@ -259,9 +338,11 @@ All live in `main.js`, initialized on `DOMContentLoaded`. Every one is
 | `initTextReveal()` | Splits target headings into per-word spans (`.word` mask + `.word__inner`) that rise up from behind a clip mask, staggered via `--word-index`. | IntersectionObserver (per heading) |
 | `initRevealAnimations()` | Fade-up for elements with `.reveal`. Optional stagger via `data-reveal-delay="N"` (× 80ms). | IntersectionObserver |
 | Carousel card reveal (in `initCarousel()`) | The whole featured-story card (`.carousel__card.carousel-reveal`) **slides in from the right** + fades (1.8s). Its inner text (title → body/attribution → button) then **staggers in** (fade+rise, 1.5s, delays 0.35/0.55/0.75s), driven by CSS off the card's `.is-visible`. Fires on first scroll-in, then **re-animates on every slide change**. See note below. | IntersectionObserver (first view) + `goTo()` + safety timeout |
+| `initCardScroll()` | **Scroll-driven** (scrubbed, not timed) slide-in for the carousel cards: their `translate` tracks the carousel's position in the viewport, spread over ~90% of a viewport height so it's slow. **Ratcheted** — it only ever moves toward settled, so scrolling back up never pushes the cards out again. | `scroll`/`resize`, throttled with `requestAnimationFrame` |
 | `initCountUp()` | Animates the stats numbers (40 / 80 / 1,530+ / 63%) counting up with a custom cubic-bezier ease. Preserves prefixes/suffixes/grouping. | IntersectionObserver (threshold 0.4) |
 | `initParallax()` | Translates the content-band background image on scroll for depth. | `scroll`/`resize`, throttled with `requestAnimationFrame` |
 | `initHeroParallax()` | Subtle parallax on the hero's **red wall only** (`.hero__bg-red`) — the people layer never moves. Driven off `window.scrollY` so it responds from the first scroll pixel; drifts the wall down up to 70px. See §3a + §5. | `scroll`/`resize`, throttled with `requestAnimationFrame` |
+| `initContentParallax()` | Drifts `.hero__content` and `.program-finder` up as you scroll, layering them over the hero art. **Driven off `window.scrollY` (factor 0.2, capped 120px), NOT off each element's `getBoundingClientRect().top`** — a viewport-relative formula is already non-zero for anything on screen at load, which shoved the hero headline ~100px above its laid-out position and put the CTA over the faces. Must read 0 at `scrollY === 0`. | `scroll`/`resize`, throttled with `requestAnimationFrame` |
 | Hero wall Ken Burns | CSS-only ambient zoom+pan on `.hero__bg-red` only (`@keyframes hero-wall-drift`, 13s alternate) — plays on its own (no scroll), people stay still. Zoom only grows past the base so no edge is exposed. Disabled under reduced-motion. | autoplay |
 | Card hover scale | CSS-only `transform: scale(1.02)` on `.stats-section__program:hover` (replaced the removed VanillaTilt 3D tilt — it caused a "jiggle"). Disabled under reduced-motion. | hover |
 | Glass shine | CSS-only diagonal sheen sweep on `.glass-card:hover` (`::before`). | hover |
