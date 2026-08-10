@@ -634,7 +634,7 @@ function initContentParallax() {
   // laid-out position — the headline rode up off the torsos and the button
   // covered the faces. Keyed to scrollY, both sit exactly where they're laid
   // out at the top of the page and only drift as you actually scroll.
-  const HERO_FACTOR = 0.4; // hero text floats up ~twice as fast as the page
+  const HERO_FACTOR = 0.6; // hero text floats up much faster than the page
   const HERO_MAX = 260;
   const FINDER_FACTOR = 0.2;
   const FINDER_MAX = 120;
