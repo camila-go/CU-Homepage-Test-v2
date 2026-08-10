@@ -835,6 +835,20 @@ button {
   outline-offset: var(--nav-focus-offset);
 }
 
+/* Activated / current nav item (Figma 21:20697) — a solid pill rather than the
+   translucent hover wash. Keyed to `aria-current="page"`, which is the standard
+   hook and gives assistive tech the same information the fill gives sighted
+   users; a presentational class would only do half the job.
+   Listed AFTER :hover/:active on purpose: same specificity, so this wins and
+   the current item keeps its stronger fill while a sibling — or itself — is
+   hovered, instead of appearing to "downgrade" to the hover colour. */
+.main-nav__links a[aria-current='page'],
+.main-nav__links a[aria-current='page']:hover,
+.main-nav__mobile-links a[aria-current='page'],
+.main-nav__mobile-links a[aria-current='page']:hover {
+  background: var(--nav-pill-current);
+}
+
 .main-nav__apply {
   flex-shrink: 0;
 }

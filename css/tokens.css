@@ -71,6 +71,10 @@
   --nav-pill-radius: 100px;
   --nav-pill-hover: rgba(255, 255, 255, 0.1);
   --nav-pill-active: rgba(255, 255, 255, 0.2);
+  /* Current/"activated" nav item — a solid fill, deliberately stronger than the
+     hover wash so it still reads as current while a sibling is hovered.
+     Sampled from the UI Elements Figma (node 21:20697). */
+  --nav-pill-current: #5e6361;
   /* Figma pill is 48px tall (gl-size-4xl) — 12px of padding on a 24px line. */
   --nav-pill-pad-y: 12px;
   --nav-pill-pad-x: clamp(12px, 1.2vw, 24px);

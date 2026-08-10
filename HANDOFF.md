@@ -242,6 +242,7 @@ Specced in the **UI Elements** Figma
 | Utility links (phone, Log in) | plain | **underline** — *not* a pill |
 | Request information | red fill, white text | **inverts**: white fill, `#c10016` text |
 | Main nav links | plain | **rounded pill**, 48px tall, white @ 10% |
+| Main nav links — **activated** | — | solid `--nav-pill-current` `#5e6361` pill, via `aria-current="page"` |
 | Apply now | white fill, dark text | **inverts**: transparent + 2px white ring, white text |
 
 - The main-nav pill is `48px` tall (Figma `gl-size-4xl`) — that's `12px` of
@@ -332,6 +333,15 @@ on hover.
   still shown rather than the hamburger.
 - `.main-nav__links a` is `inline-flex` on purpose: `transform` is ignored on
   inline non-replaced boxes, so the press state would silently do nothing.
+- **The activated state is keyed to `aria-current="page"`**, not a presentational
+  class, so assistive tech gets the same "you are here" signal the fill gives
+  sighted users. **No item carries it in `index.html`** — this is the homepage,
+  and none of the four nav destinations is the current page; marking one would
+  announce the wrong page to a screen reader. Add the attribute to a link (also
+  works on `.main-nav__mobile-links`) when the nav is reused on a real section
+  page. Its rule sits *after* `:hover`/`:active` at equal specificity so the
+  current item keeps the stronger fill instead of appearing to downgrade to the
+  hover wash when pointed at.
 - The mobile hamburger is a bare icon at rest but keeps `border-radius: 50%`,
   so its hover / press / open fills render as a circle rather than a square.
 - Press feedback (the only motion) is disabled under `prefers-reduced-motion`;
