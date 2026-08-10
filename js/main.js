@@ -634,7 +634,10 @@ function initContentParallax() {
   // laid-out position — the headline rode up off the torsos and the button
   // covered the faces. Keyed to scrollY, both sit exactly where they're laid
   // out at the top of the page and only drift as you actually scroll.
-  const MAX = 120; // px of travel, so the text can't wander far from its art
+  const HERO_FACTOR = 0.4; // hero text floats up ~twice as fast as the page
+  const HERO_MAX = 260;
+  const FINDER_FACTOR = 0.2;
+  const FINDER_MAX = 120;
 
   let ticking = false;
   const update = () => {
@@ -642,12 +645,18 @@ function initContentParallax() {
     const y = window.scrollY || document.documentElement.scrollTop || 0;
 
     if (heroContent) {
-      const offset = Math.min(y * 0.2, MAX);
+      // The hero has `overflow: hidden`, so cap the travel at the content's own
+      // laid-out distance from the hero's top edge (less a little breathing
+      // room). Without this the headline clips against the hero's top on short
+      // heroes — the mobile hero only leaves ~110px of room, versus ~290 on
+      // desktop. offsetTop is a layout value, so `translate` doesn't skew it.
+      const room = Math.max(0, heroContent.offsetTop - 16);
+      const offset = Math.min(y * HERO_FACTOR, room, HERO_MAX);
       heroContent.style.translate = `0 ${-offset.toFixed(2)}px`;
     }
 
     if (programFinder) {
-      const offset = Math.min(y * 0.2, MAX);
+      const offset = Math.min(y * FINDER_FACTOR, FINDER_MAX);
       programFinder.style.translate = `0 ${-offset.toFixed(2)}px`;
     }
   };
