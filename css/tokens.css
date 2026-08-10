@@ -81,6 +81,20 @@
   --nav-focus-ring: 2px solid var(--color-white);
   --nav-focus-offset: 2px;
 
+  /* Nav dropdown surfaces — UI Elements Figma (mobile 2003:19342, desktop
+     2006:19343). The menus are DARK. Surfaces step one shade lighter per
+     column, and the highlight for a row is the next surface along that ramp,
+     which is what visually ties a column to the one it opened. */
+  --menu-surface-1: #212322; /* uni-black-500 — panel, levels column */
+  --menu-surface-2: #383838; /* neutral-600 — areas column; highlight on surface-1 */
+  --menu-surface-3: #454545; /* neutral-500 — programs column; highlight on surface-2 */
+  --menu-row-mobile: #262626; /* neutral-700 — filled top-level mobile rows */
+  --menu-rule: #696969; /* neutral-400 — mobile row divider */
+  --menu-text: #ffffff; /* neutral-0 */
+  --menu-text-muted: #d4d4d4; /* neutral-100 — levels column title + eyebrow */
+  --menu-heading: #fafbfb; /* neutral-50 — areas/programs column headings */
+  --menu-shadow: 0 5px 20px rgba(0, 0, 0, 0.1); /* CU/elevation 1 */
+
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --duration-fast: 0.2s;
   --duration-med: 0.45s;

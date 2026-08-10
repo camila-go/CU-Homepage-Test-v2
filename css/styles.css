@@ -185,6 +185,36 @@ button {
 /* Dark pill → OUTLINE on hover: fill drops away leaving a 2px white ring and
    white text. Inset box-shadow, not a border, so the size doesn't change.
    Only used by the action-CTA's "Get started". */
+/* Ghost pill on video/imagery (Figma 2008:19348): transparent with a 2px white
+   ring, filling solid #5f5f5f on hover. The ring is a real border rather than an
+   inset shadow because the design's 201×60 box includes it. */
+.btn--ghost {
+  background: transparent;
+  color: var(--color-white);
+  border: 2px solid var(--color-white);
+  transition:
+    background var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+
+.btn--ghost:hover,
+.btn--ghost:focus-visible {
+  opacity: 1;
+  background: #5f5f5f;
+  border-color: #5f5f5f;
+}
+
+.btn--ghost:focus-visible {
+  outline: var(--nav-focus-ring);
+  outline-offset: var(--nav-focus-offset);
+}
+
+.btn--ghost:active {
+  opacity: 1;
+  background: #4c4c4c;
+  border-color: #4c4c4c;
+}
+
 .btn--dark {
   background: var(--color-uni-black);
   color: var(--color-white);
@@ -470,23 +500,47 @@ button {
   transform: rotate(-45deg);
 }
 
+/* Full-screen overlay pinned under the header, not a card in the flow.
+   ⚠️ `fixed`, deliberately: the panel is a child of `.main-nav`, which is
+   `sticky`, so an in-flow panel taller than the viewport scrolled WITH the
+   header and its lower rows could never be reached. Fixed + a self-scrolling
+   view stack removes that class of bug entirely.
+   107px = the 40px utility bar + the 67px mobile bar; svh so it stays correct
+   when mobile browser chrome shows and hides. */
 .main-nav__mobile-panel {
   display: none;
+  position: fixed;
+  /* Fallback only — JS overwrites this on open with the header's measured
+     bottom, so the panel meets the nav bar at any scroll position. */
+  top: 107px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 130;
   flex-direction: column;
-  gap: 16px;
   width: 100%;
-  margin-top: 12px;
-  padding: 20px 24px;
-  border-radius: var(--radius-card);
-  background: rgba(33, 35, 34, 0.92);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  animation: program-finder-open var(--duration-med) var(--ease-out-expo);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  /* Dark, continuous with the nav bar above it (Figma 2003:19342) — hence no
+     red rule at the seam any more. */
+  background: var(--menu-surface-1);
+  overflow: hidden; /* the views scroll themselves */
 }
 
 .main-nav__mobile-panel:not([hidden]) {
   display: flex;
+}
+
+/* The open panel swallows its own scroll rather than locking the body:
+   `overflow: hidden` on <body> changes the scroll container and knocks the
+   sticky header loose, which left the panel anchored to a header that had
+   scrolled away. The panel is fixed and the header sticky, so both stay put
+   regardless — only the chaining needs stopping. */
+.main-nav__mobile-panel,
+.mobile-menu__view {
+  overscroll-behavior: contain;
 }
 
 .main-nav__mobile-links {
@@ -527,15 +581,15 @@ button {
   width: 100%;
 }
 
+/* ⚠️ The scrolled state changes COLOR ONLY — never geometry. It used to shrink
+   the bar 88 → 72px and add 12px of padding. Megamenus are positioned from the
+   bar's bottom edge at the moment they open, so that 16px shrink left an open
+   dropdown floating with a visible gap under the nav. Anything added here that
+   changes the header's height will reopen that bug. */
 .main-nav--scrolled {
-  padding-block: 12px;
   background: rgba(33, 35, 34, 0.88);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-}
-
-.main-nav--scrolled .main-nav__bar {
-  min-height: 72px;
 }
 
 /* Scroll reveal */
@@ -766,7 +820,6 @@ button {
   padding: 0 4px 0 0;
   border-radius: 100px;
   background: var(--color-uni-black);
-  transition: min-height var(--duration-med) var(--ease-out-expo);
 }
 
 .main-nav__logo {
@@ -800,7 +853,12 @@ button {
   list-style: none;
 }
 
-.main-nav__links a {
+/* ⚠️ `> a` on purpose — the direct child is the TRIGGER. This was
+   `.main-nav__links a`, which also matched every link inside the megamenus and
+   handed them the pill's `border-radius: 100px`, its `white-space: nowrap`
+   (so long labels overflowed their panel instead of wrapping) and a hover that
+   outranked the panels' own. Don't widen this selector again. */
+.main-nav__item > a {
   /* inline-flex (not inline) so the pill's padding gives a full-height hit area
      and so `transform` applies on :active — transforms are ignored on inline
      non-replaced boxes. */
@@ -821,16 +879,16 @@ button {
     transform var(--duration-fast) ease;
 }
 
-.main-nav__links a:hover {
+.main-nav__item > a:hover {
   background: var(--nav-pill-hover);
 }
 
-.main-nav__links a:active {
+.main-nav__item > a:active {
   background: var(--nav-pill-active);
   transform: scale(0.97);
 }
 
-.main-nav__links a:focus-visible {
+.main-nav__item > a:focus-visible {
   outline: var(--nav-focus-ring);
   outline-offset: var(--nav-focus-offset);
 }
@@ -842,11 +900,478 @@ button {
    Listed AFTER :hover/:active on purpose: same specificity, so this wins and
    the current item keeps its stronger fill while a sibling — or itself — is
    hovered, instead of appearing to "downgrade" to the hover colour. */
-.main-nav__links a[aria-current='page'],
-.main-nav__links a[aria-current='page']:hover,
+.main-nav__item > a[aria-current='page'],
+.main-nav__item > a[aria-current='page']:hover,
 .main-nav__mobile-links a[aria-current='page'],
 .main-nav__mobile-links a[aria-current='page']:hover {
   background: var(--nav-pill-current);
+}
+
+/* An open trigger keeps the current-item fill so you can see which menu you're
+   in while the pointer is somewhere inside the panel. */
+.main-nav__item > a[aria-expanded='true'],
+.main-nav__item > a[aria-expanded='true']:hover {
+  background: var(--nav-pill-current);
+}
+
+/* ---- Megamenu ------------------------------------------------------------
+   Geometry measured off the live capella.edu nav (1280 viewport):
+     Degrees & Programs  three CASCADING 380px columns — dark levels rail,
+                         #f5f5f5 areas, #fff programs — starting at the nav
+                         container's left edge, not under its trigger.
+     Other three         a single 300px column anchored UNDER its trigger.
+     Shadow              0 7.5px 15px rgba(0,0,0,.176) — tight, on the panel
+                         itself. It must not sit on a full-bleed wrapper or it
+                         reads as a band across the whole viewport.
+     Appearance          instant; the real menu has transition-duration 0s.
+   `.main-nav__item` is `relative` so the narrow menus anchor to their trigger;
+   the wide one is offset back to the container edge by initMegaMenu. */
+/* `static`, so panels are positioned against `.main-nav` and can hang from the
+   BAR's bottom edge. Anchoring to the item made each panel start at its own
+   trigger pill, which is inset within the bar — so the menus opened at slightly
+   different heights. `top`/`left` are both set by initMegaMenu on open. */
+.main-nav__item {
+  position: static;
+}
+
+/* Dark menus per the UI Elements Figma (2006:19343). No red rule along the top:
+   the panel now sits on the near-black nav with only elevation to separate it. */
+.megamenu {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 120;
+  display: flex;
+  color: var(--menu-text);
+  box-shadow: var(--menu-shadow);
+}
+
+/* Must beat the `display: flex` above, or the panels never close. */
+.megamenu[hidden] {
+  display: none;
+}
+
+/* --- Narrow single-column menus (Experience / Financing / Admissions) ---
+   Every row here is 34px: 16px/24px type with 5px block padding, indented 28px.
+   Headings and links share that geometry exactly — only weight and colour
+   differ — so the column reads as an even rhythm and the panel height is purely
+   a function of the row count. Do NOT give these rows the Degrees menu's 44px
+   height or its chevron: those belong to rows that drill down, and these don't
+   (verified against the live nav, where `::after` is `none` here). */
+.megamenu--list {
+  flex-direction: column;
+  width: 300px;
+  padding: 22px 0;
+  background: var(--menu-surface-1);
+}
+
+/* 20px of air before each subsequent group = the live site's 54px step
+   between a group's last link and the next heading (34 + 20). */
+.megamenu__group + .megamenu__group {
+  margin-top: 20px;
+}
+
+.megamenu__group-title {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: 24px;
+}
+
+.megamenu__area-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.megamenu--list .megamenu__area-list a,
+.megamenu--list .megamenu__group-title a {
+  display: block;
+  padding: 5px 28px;
+  font-size: var(--text-body);
+  line-height: 24px;
+}
+
+.megamenu--list .megamenu__group-title a {
+  font-weight: 700; /* the live site swaps to the Inter-Bold family here */
+  color: var(--menu-text);
+}
+
+.megamenu--list .megamenu__area-list a {
+  font-weight: 400;
+  color: var(--menu-text);
+}
+
+/* `block`, not `flex`: long labels ("No-cost gen eds via Sophia Learning") have
+   to wrap, and an anonymous flex text item won't shrink below its content.
+   Room is reserved on the right and the chevron placed absolutely into it. */
+/* Rows run edge to edge with SQUARE corners — the live menu has no pill/rounded
+   button here; the negative inline margin cancels the column's 20px padding so
+   the highlight bleeds to the column edges. */
+.megamenu--split .megamenu__area-list a {
+  display: block;
+  position: relative;
+  /* 10px block padding = the 44px row the live site uses for drill-down rows. */
+  padding: 10px 32px 10px 20px;
+  margin-inline: -20px;
+  border-radius: 0;
+  font-size: var(--text-body);
+  line-height: 1.5;
+}
+
+.megamenu--split .megamenu__area-list a::after {
+  content: '\203A';
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  color: var(--menu-text-muted);
+  font-size: 1.25em;
+  line-height: 1.5;
+}
+
+/* The programs column is the last level — nothing drills down from it, so no
+   chevron (matches the live menu). */
+.megamenu__col--programs .megamenu__area-list a::after {
+  content: none;
+}
+
+/* A row's highlight is the surface of the column it opens, which is what ties
+   the two columns together (Figma 2003:17975 / 2003:18010). The programs column
+   is the end of the ramp, so its rows highlight one step BACK instead. */
+.megamenu__col--areas .megamenu__area-list a:hover,
+.megamenu__col--areas .megamenu__area-list a[aria-current] {
+  background: var(--menu-surface-3);
+}
+
+.megamenu__col--programs .megamenu__area-list a:hover {
+  background: var(--menu-surface-2);
+}
+
+/* Hover fills the ROW, it never underlines (Figma 2003:18768 is annotated
+   "hover state"): the row lifts one surface off the panel. Rows are
+   `display: block` in a panel with no inline padding, so the fill runs edge
+   to edge already. */
+.megamenu--list .megamenu__area-list a:hover,
+.megamenu--list .megamenu__group-title a:hover {
+  background: var(--menu-surface-2);
+}
+
+/* Terminal CTA of a list menu (Admissions → Apply Now): a full-bleed red bar
+   flush to the panel's bottom edge, not another text row. The negative bottom
+   margin cancels the panel's 22px block padding so no grey shows beneath it. */
+.megamenu__apply {
+  display: block;
+  margin-top: 22px;
+  margin-bottom: -22px;
+  padding: 18px 28px;
+  background: var(--color-uni-red);
+  color: var(--color-white);
+  font-weight: 700;
+  text-align: center;
+  transition: background var(--duration-fast) ease;
+}
+
+.megamenu__apply:hover,
+.megamenu__apply:focus-visible {
+  background: #a30013;
+}
+
+.megamenu__area-list a:focus-visible,
+.megamenu__group-title a:focus-visible,
+.megamenu__apply:focus-visible,
+.megamenu__level:focus-visible,
+.megamenu__cta:focus-visible {
+  /* White, not uni-black — the menus are dark surfaces now. */
+  outline: 2px solid var(--menu-text);
+  outline-offset: -2px;
+}
+
+/* --- Wide cascading menu (Degrees & Programs) --- */
+.megamenu__col {
+  /* 380px per the live site, but allowed to shrink so three columns still fit
+     between the hamburger breakpoint and a full-width desktop. */
+  width: clamp(220px, 29vw, 380px);
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.megamenu__col--levels {
+  background: var(--menu-surface-1);
+  color: var(--menu-text);
+}
+
+.megamenu__col--areas {
+  background: var(--menu-surface-2);
+  color: var(--menu-text);
+}
+
+.megamenu__col--programs {
+  background: var(--menu-surface-3);
+  color: var(--menu-text);
+}
+
+.megamenu__col[hidden] {
+  display: none;
+}
+
+.megamenu__title {
+  margin: 0;
+  padding: 28px 24px 2px;
+  font-size: var(--text-h5);
+  font-weight: 700;
+  color: var(--menu-text-muted);
+}
+
+.megamenu__eyebrow {
+  margin: 0;
+  padding: 0 24px 20px;
+  font-size: var(--text-body);
+  color: var(--menu-text-muted);
+}
+
+.megamenu__level-list {
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.megamenu__level {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  /* 18px block padding = the live site's 60px row. */
+  padding: 18px 24px;
+  border-left: 5px solid transparent;
+  background: none;
+  color: var(--color-white);
+  font: inherit;
+  font-size: var(--text-body);
+  /* Explicit: `font: inherit` also inherits the line-height, which lands the
+     row at 56px instead of the live site's 60. */
+  line-height: 24px;
+  text-align: left;
+}
+
+.megamenu__level:hover {
+  background: var(--menu-surface-2);
+}
+
+/* Active level: the areas-column surface plus the 5px red edge (Figma
+   2003:17950). Text stays white — the fill is dark now, not #f5f5f5. */
+.megamenu__level.is-active {
+  background: var(--menu-surface-2);
+  border-left-color: var(--color-uni-red);
+  color: var(--menu-text);
+  font-weight: 700;
+}
+
+/* Light, not red: on these dark surfaces a red chevron all but disappears. */
+.megamenu__chev {
+  color: var(--menu-text-muted);
+  font-size: 1.25em;
+  line-height: 1;
+}
+
+.megamenu__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: var(--color-uni-red);
+  color: var(--color-white);
+  font-weight: 700;
+  font-size: var(--text-body);
+}
+
+.megamenu__cta:hover {
+  background: var(--color-white);
+  color: var(--color-uni-red);
+}
+
+.megamenu__col--areas,
+.megamenu__col--programs {
+  padding: 24px 20px;
+  overflow-y: auto;
+}
+
+.megamenu__panel[hidden] {
+  display: none;
+}
+
+.megamenu__panel-title,
+.megamenu__programs-title {
+  margin: 0 0 12px;
+  font-size: var(--text-h6);
+  font-weight: 700;
+  color: var(--menu-heading);
+}
+
+/* --- Below the hamburger breakpoint the menus live in the mobile panel,
+       as a drill-down accordion (built by initMobileMenuTree), so the popover
+       versions are not shown. --- */
+@media (max-width: 1024px) {
+  .megamenu {
+    display: none;
+  }
+
+  /* ⚠️ No `backdrop-filter` on the header at these widths. A backdrop-filter
+     (like filter/transform/will-change) makes the element a CONTAINING BLOCK
+     for `position: fixed` descendants — and the mobile menu panel is a fixed
+     child of `.main-nav`. With the blur on, `top/bottom` resolved against the
+     ~110px header instead of the viewport, so the panel collapsed to just its
+     3px red border: the menu looked like it opened onto the page. It only bit
+     once `.main-nav--scrolled` applied, i.e. only when you were scrolled down.
+     The bar is opaque here anyway, so the blur bought nothing. */
+  .main-nav,
+  .main-nav--scrolled {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .main-nav--scrolled {
+    background: var(--color-boulder-900);
+  }
+}
+
+/* Mobile navigation — a stack of full-screen views that slide in from the
+   right, matching capella.edu. The panel itself is the surface; each view is an
+   absolutely-positioned layer above it, so pushing a level covers the previous
+   one in the z-axis rather than pushing it down the page. */
+.main-nav__mobile-panel .mobile-menu__viewport {
+  position: relative;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.mobile-menu__view {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 8px 0 24px;
+  /* Opaque, so a pushed view fully hides the one it covers. */
+  background: var(--menu-surface-1);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Parked off to the right; `.is-current` slides it in. Each pushed view sits
+     above the one before it, so the parent stays put underneath. */
+  transform: translateX(100%);
+  transition: transform var(--duration-med) var(--ease-out-expo);
+}
+
+.mobile-menu__view.is-current {
+  transform: translateX(0);
+}
+
+/* The root view is already in place and must never slide. */
+.mobile-menu__view--root {
+  transform: none;
+  transition: none;
+  z-index: 0;
+}
+
+.mobile-menu__back {
+  display: block;
+  padding: 12px 24px;
+  background: none;
+  border: 0;
+  color: var(--menu-text);
+  font: inherit;
+  font-size: var(--text-body);
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mobile-menu__heading {
+  margin: 0;
+  padding: 8px 24px 12px;
+  font-size: var(--text-body-lg);
+  color: var(--menu-text);
+}
+
+.mobile-menu__group {
+  margin: 20px 0 0;
+  padding: 8px 24px;
+  font-size: var(--text-body);
+  font-weight: 700;
+  color: var(--menu-text);
+}
+
+/* Rows are full-bleed with a hairline rule between them, as on the live site. */
+.mobile-menu__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 18px 24px;
+  border: 0;
+  border-bottom: 1px solid var(--menu-rule);
+  background: none;
+  color: var(--menu-text);
+  font: inherit;
+  font-size: var(--text-body-lg);
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Top-level rows carry a filled surface; drill-down levels sit bare on the
+   panel (Figma 2003:18500 vs 2003:18018). */
+.mobile-menu__row--strong {
+  font-weight: 700;
+  background: var(--menu-row-mobile);
+}
+
+.mobile-menu__row:hover,
+.mobile-menu__row--strong:hover {
+  background: var(--menu-surface-2);
+}
+
+.mobile-menu__row:focus-visible {
+  outline: 2px solid var(--menu-text);
+  outline-offset: -2px;
+}
+
+.mobile-menu__chev {
+  flex-shrink: 0;
+  color: var(--menu-text-muted);
+  font-size: 1.4em;
+  line-height: 1;
+}
+
+/* Fixed red action bar pinned to the bottom of the panel. */
+.mobile-menu__footer {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+  background: var(--color-uni-red);
+}
+
+.mobile-menu__footer a {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 8px;
+  color: var(--color-white);
+  font-size: var(--text-body);
+}
+
+.mobile-menu__footer a + a {
+  border-left: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.mobile-menu__footer a:hover {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-menu__view {
+    transition: none;
+  }
 }
 
 .main-nav__apply {
@@ -1353,15 +1878,33 @@ button {
   margin-bottom: 32px;
 }
 
+/* The pull-quote (alumni + faculty cards) is Inter BOLD Italic, not regular.
+   Measured off the Card Update render: 28px with a 34px line step (≈1.2) on the
+   1440 card, clearly heavier than the role/disclaimer copy beneath it. */
 .carousel__title {
   margin: 0;
   max-width: 600px;
   font-family: var(--font-body);
   font-style: italic;
-  font-weight: 400;
-  font-size: clamp(1.125rem, 4vw, var(--text-h5));
-  line-height: 1.5;
+  font-weight: 700;
+  font-size: clamp(1.125rem, 4vw, var(--text-h4));
+  line-height: 1.2;
   color: var(--color-boulder-900);
+}
+
+/* ⚠️ The student card's headline is NOT a pull-quote — it's the display face:
+   extra-condensed BLACK, italic, uppercase, in pure black. Measured 67px with a
+   60px line step (line-height 0.9). It shares `.carousel__title` with the quote
+   for positioning, so without this it rendered as Inter italic. */
+.carousel__content--student .carousel__title {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display-black);
+  font-style: italic;
+  font-size: clamp(1.75rem, 7.4vw, var(--text-display));
+  line-height: 0.9;
+  letter-spacing: normal;
+  text-transform: uppercase;
+  color: var(--color-black);
 }
 
 .carousel__quote-mark {
@@ -1401,7 +1944,7 @@ button {
   font-size: var(--text-body);
   font-weight: 400;
   line-height: 1.5;
-  color: var(--color-boulder-800);
+  color: var(--color-boulder-700);
 }
 
 .carousel__disclaimer {
@@ -1909,8 +2452,6 @@ button {
 }
 
 .action-cta__panels {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
   height: 100%;
   min-height: 750px;
 }
@@ -1921,34 +2462,29 @@ button {
   height: 100%;
   min-height: 750px;
   object-fit: cover;
-  object-position: center top;
-  /* Warm backdrop placeholder so there's no black flash before the (lazy-
-     loaded) video paints its first frame. */
-  background-color: #d5a461;
+  object-position: center;
+  /* Neutral placeholder behind the poster — no black flash before the first
+     painted frame on a slow connection. */
+  background-color: #6f7472;
 }
 
 /* Reduced motion: don't play video — fall back to the static image. The
    background-image is only fetched when this media query matches, so normal
    visitors never download it. */
+/* Reduced motion: the poster frame IS the fallback, so there's nothing extra to
+   download — the video element still lays out and paints its poster, we just
+   never call play(). */
 @media (prefers-reduced-motion: reduce) {
-  .action-cta__video {
-    display: none;
-  }
-
   .action-cta__panels {
-    grid-template-columns: 1fr;
-    background-image: url("/assets/cta-people.png");
+    background-image: url("/assets/videos/cta-tvspot-poster.jpg");
     background-size: cover;
     background-position: center;
   }
 }
 
-@media (prefers-reduced-motion: reduce) and (max-width: 768px) {
-  .action-cta__panels {
-    background-image: url("/assets/cta-mobile.jpg");
-  }
-}
-
+/* The scrim is an ellipse anchored to the bottom centre, not a linear wash —
+   Figma 2008:19347 is a radial gradient rgba(0,0,0,0.86) → transparent with
+   radii 701 × 365 on the 1440 × 750 frame (both ≈48.7%), centred at 50% 100%. */
 .action-cta__overlay {
   position: absolute;
   inset: 0;
@@ -1956,13 +2492,12 @@ button {
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  gap: 32px;
-  padding-bottom: 80px;
-  background: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0) 40%,
-    rgba(0, 0, 0, 0.55) 75%,
-    rgba(0, 0, 0, 0.75) 100%
+  gap: 28px;
+  padding-bottom: 56px;
+  background: radial-gradient(
+    ellipse 48.7% 48.7% at 50% 100%,
+    rgba(0, 0, 0, 0.86) 0%,
+    rgba(0, 0, 0, 0) 100%
   );
   text-align: center;
 }
@@ -1970,6 +2505,17 @@ button {
 .action-cta__title {
   margin: 0;
   max-width: 504px;
+  color: var(--color-white);
+  letter-spacing: -0.6px;
+}
+
+/* The design's 201 × 60 box INCLUDES the 2px ring. `btn--lg`'s 16px block
+   padding on a 30px line box would make it 66, so pin the height and let flex
+   centre the label. */
+.action-cta__btn {
+  height: 60px;
+  min-height: 60px;
+  padding-block: 0;
 }
 
 /* Footer */
@@ -2108,24 +2654,86 @@ button {
   opacity: 0.35;
 }
 
+/* Partner carousel — `--per-view` drives the slide width, so the breakpoints
+   only have to change that one number. Live site: 6 up on desktop, 1 on mobile. */
 .footer__partners {
+  --per-view: 6;
   display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer__partners-viewport {
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.footer__partners-track {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  transition: transform var(--duration-med) var(--ease-out-expo);
+}
+
+.footer__partners-item {
+  flex: 0 0 calc(100% / var(--per-view));
+  display: flex;
+  align-items: center;
   justify-content: center;
-  overflow-x: auto;
-  scrollbar-width: none;
+  padding: 0 12px;
+  min-width: 0;
 }
 
-.footer__partners::-webkit-scrollbar {
-  display: none;
-}
-
-.footer__partners-strip {
-  display: block;
-  width: 100%;
-  min-width: 760px;
-  max-width: 1440px;
+/* Cap BOTH axes rather than pinning a height: the wordmarks range from 88 to
+   165 units wide at the same height, so a fixed height would push the widest
+   ones out of their slot. */
+.footer__partners-item img {
+  width: auto;
   height: auto;
-  margin-inline: auto;
+  max-width: 100%;
+  max-height: 44px;
+  object-fit: contain;
+}
+
+.footer__partners-arrow {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-white);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) ease,
+    opacity var(--duration-fast) ease;
+}
+
+.footer__partners-arrow:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.footer__partners-arrow:focus-visible {
+  outline: 2px solid var(--color-white);
+  outline-offset: 2px;
+}
+
+/* Disabled rather than hidden, so the track keeps the same width and the logos
+   don't shift when you reach either end. */
+.footer__partners-arrow[disabled] {
+  opacity: 0.3;
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer__partners-track {
+    transition: none;
+  }
 }
 
 /* Responsive */
@@ -2354,6 +2962,12 @@ button {
     top: calc(509 * var(--px));
     left: 50%;
     transform: translateX(-50%);
+    /* ⚠️ `left: 50%` with `right: auto` leaves the shrink-to-fit box only HALF
+       the card to lay out in, which broke "Is FlexPath right for you?" onto two
+       lines. Size to the label instead; the max-width keeps it inside the card
+       on the narrowest screens. */
+    width: max-content;
+    max-width: calc(100% - 48px);
     min-height: 48px;
     padding: 12px 20px;
     font-size: var(--text-body);
@@ -2499,8 +3113,8 @@ button {
   }
 
   .carousel__title {
-    font-size: calc(20 * var(--px));
-    line-height: 1.5;
+    font-size: calc(28 * var(--px));
+    line-height: 1.2;
     max-width: calc(600 * var(--px));
   }
 
@@ -2512,6 +3126,9 @@ button {
   .carousel__name {
     font-size: calc(40 * var(--px));
     line-height: 0.9;
+    /* The t3 token reads 0, but the rendered name measures 227px against 233px
+       untracked — so the text node carries ~-0.4px. Scaled with the type. */
+    letter-spacing: calc(-0.4 * var(--px));
     margin-bottom: 0;
   }
 
@@ -2539,7 +3156,7 @@ button {
 
   .carousel__content--alumni .carousel__title {
     position: absolute;
-    top: calc(184 * var(--px));
+    top: calc(192 * var(--px));
     left: 0;
     width: calc(600 * var(--px));
     margin: 0;
@@ -2547,7 +3164,7 @@ button {
 
   .carousel__content--alumni .carousel__attribution {
     position: absolute;
-    top: calc(374 * var(--px));
+    top: calc(382 * var(--px));
     left: 0;
     width: calc(600 * var(--px));
     margin: 0;
@@ -2557,15 +3174,18 @@ button {
     margin: 0;
   }
 
+  /* 44 = the 36px name line box (40 × 0.9) + the design's 8px auto-layout gap.
+     These offsets are absolute, so the gap has to be written into the Y rather
+     than left to a margin. */
   .carousel__content--alumni .carousel__program {
     position: absolute;
-    top: calc(38 * var(--px));
+    top: calc(44 * var(--px));
     margin: 0;
   }
 
   .carousel__content--alumni .carousel__disclaimer {
     position: absolute;
-    top: calc(95 * var(--px));
+    top: calc(90 * var(--px));
     width: calc(600 * var(--px));
     margin: 0;
   }
@@ -2588,18 +3208,24 @@ button {
     margin: 0;
   }
 
+  /* Y positions re-measured off the Card Update render after the type changed:
+     the two-line display headline is far taller than the single line of Inter
+     these offsets were originally set against, and it was running into the
+     body copy. Ink lands at 170 / 330 / 416 rel to the card. */
   .carousel__content--student .carousel__title {
-    top: calc(184 * var(--px));
+    top: calc(181 * var(--px));
     width: calc(600 * var(--px));
+    font-size: calc(67 * var(--px));
+    line-height: 0.9;
   }
 
   .carousel__content--student .carousel__body {
-    top: calc(254 * var(--px));
+    top: calc(328 * var(--px));
     width: calc(557 * var(--px));
   }
 
   .carousel__content--student .btn {
-    top: calc(346 * var(--px));
+    top: calc(416 * var(--px));
     min-height: calc(60 * var(--px));
     height: calc(60 * var(--px));
     padding: calc(16 * var(--px)) calc(28 * var(--px));
@@ -2627,28 +3253,33 @@ button {
     margin: 0;
   }
 
+  /* The faculty quote runs to four lines and the alumni one to three, but both
+     END on the same baseline in the design (ink bottom 288) — so this card's
+     quote starts higher rather than sharing the alumni card's top. */
   .carousel__content--faculty .carousel__title {
-    top: calc(184 * var(--px));
+    top: calc(158 * var(--px));
     width: calc(600 * var(--px));
   }
 
   .carousel__content--faculty .carousel__attribution {
-    top: calc(337 * var(--px));
+    top: calc(343 * var(--px));
     /* Explicit width: absolutely-positioned children would otherwise be
        constrained by this wrapper's shrink-to-fit width (the name), wrapping
        the two-line role into a narrow column. */
     width: calc(600 * var(--px));
   }
 
+  /* Same 36 + 8 as the alumni card — the two-line role then makes the
+     attribution block 92px tall, matching the Figma hug. */
   .carousel__content--faculty .carousel__program {
     position: absolute;
-    top: calc(38 * var(--px));
+    top: calc(44 * var(--px));
     width: calc(600 * var(--px));
     margin: 0;
   }
 
   .carousel__content--faculty .btn {
-    top: calc(463 * var(--px));
+    top: calc(461 * var(--px));
     min-height: calc(60 * var(--px));
     height: calc(60 * var(--px));
     padding: calc(16 * var(--px)) calc(28 * var(--px));
@@ -2670,19 +3301,34 @@ button {
 }
 
 @media (max-width: 1280px) {
+  .footer__partners {
+    --per-view: 3;
+  }
+
+  /* Everything in the stacked footer hangs off the SAME left edge as the
+     copyright and the partner strip below it. Centring the brand and the link
+     grid here previously produced three different left edges in one footer
+     (logo 76px, columns 69px, copyright 0px at 375px wide). */
   .footer__top {
     flex-direction: column;
     gap: 48px;
-    align-items: center;
+    align-items: stretch;
   }
 
   .footer__brand {
     width: auto;
   }
 
+  /* Grid, not wrapping flex: with `flex-wrap` + `justify-content: center` the
+     4th column ("Legal") wrapped onto its own row and centred there, leaving it
+     floating under the gap between columns 1 and 2. Grid auto-placement drops
+     it into the first cell of the next row, so wrapped columns stay aligned
+     with the ones above them. */
   .footer__links {
-    flex-wrap: wrap;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, 208px);
+    justify-content: start;
+    gap: 48px 24px;
     width: 100%;
   }
 
@@ -2863,14 +3509,6 @@ button {
     min-height: 67px;
   }
 
-  .main-nav--scrolled {
-    padding-block: 0;
-  }
-
-  .main-nav--scrolled .main-nav__bar {
-    min-height: 67px;
-  }
-
   /* Hamburger: bare 3-line icon at rest (no ring/fill), 44px tap target — but
      its hover/press/open states stay a CIRCLE, so keep the radius at 50%
      rather than 0, otherwise those state fills render as a square. */
@@ -2913,28 +3551,62 @@ button {
     height: 22px;
   }
 
-  /* Mobile uses Figma's single-person portrait (served via <picture>);
-     match the design's 375x687 portrait ratio so the full figure shows. */
+  /* Portrait crop of the same landscape master — the design's mobile frame is
+     374 × 686, so `cover` trims the sides rather than letterboxing. */
   .action-cta {
     min-height: 0;
   }
 
-  /* Phones: show only the first (top) video full-bleed; the other two are
-     hidden. */
   .action-cta__panels {
     min-height: 0;
     aspect-ratio: 375 / 687;
-    grid-template-columns: 1fr;
+  }
+
+  /* Safari < 15 ignores `aspect-ratio`; with `min-height: 0` above, the panel
+     would collapse to zero and the whole section would vanish. Restore a height
+     for those browsers only. */
+  @supports not (aspect-ratio: 1 / 1) {
+    .action-cta__panels {
+      min-height: 620px;
+    }
   }
 
   .action-cta__video {
     min-height: 0;
     height: 100%;
-    object-position: center top;
   }
 
-  .action-cta__video:nth-child(n + 2) {
-    display: none;
+  /* 303px is the design's text column; without it the headline breaks after
+     "waiting", leaving a 69px orphan line. */
+  .action-cta__title {
+    max-width: 303px;
+  }
+
+  /* One brand at a time on phones, as on the live site. */
+  .footer__partners {
+    --per-view: 1;
+  }
+
+  /* Phones centre the whole footer — brand, columns, copyright — matching the
+     live site. This deliberately overrides the flush-left treatment the ≤1280
+     block sets for tablet; the point of that rule was that every block share ONE
+     edge, and centring keeps that true. */
+  .footer__top,
+  .footer__brand {
+    align-items: center;
+  }
+
+  .footer__links {
+    justify-content: center;
+  }
+
+  .footer__column,
+  .footer__copyright {
+    text-align: center;
+  }
+
+  .footer__social {
+    justify-content: center;
   }
 
   /* Stat labels drop from h6 (20px) to 16px on mobile per Figma 5647:6361. */
@@ -2948,12 +3620,15 @@ button {
 
   .footer__copyright {
     flex-direction: column;
+    align-items: center;
     gap: 12px;
   }
 
   .footer__rights {
     white-space: normal;
-    text-align: left;
+    /* `inherit`, not `left` — the copyright is centred with the rest of the
+       footer on phones. */
+    text-align: inherit;
   }
 }
 
@@ -2999,7 +3674,7 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .utility-bar__link,
   .utility-bar__cta,
-  .main-nav__links a,
+  .main-nav__item > a,
   .main-nav__mobile-links a,
   .main-nav__menu-btn,
   .main-nav__logo,
@@ -3010,7 +3685,7 @@ button {
 
   .utility-bar__link:active,
   .utility-bar__cta:active,
-  .main-nav__links a:active,
+  .main-nav__item > a:active,
   .main-nav__mobile-links a:active,
   .main-nav__menu-btn:active,
   .main-nav__logo:active,

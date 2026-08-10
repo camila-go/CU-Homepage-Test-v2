@@ -701,17 +701,435 @@ function initNavScroll() {
   window.addEventListener('scroll', onScroll, { passive: true });
 }
 
+// Third level of the Degrees megamenu: area of study → programs, mirroring
+// capella.edu (where an area is a toggle, not a link, and swaps the right-hand
+// column for its programs). Kept in JS rather than markup because it's ~50
+// extra links that only ever appear on demand.
+const MEGA_PROGRAMS = {
+  'area-bachelors': {
+    Business: ['BS in Business'],
+    'Health Sciences': ['BS in Health Care Administration'],
+    'Information Technology': ['BS in Computer Science', 'BS in Information Technology'],
+    Nursing: ['BSN (Prelicensure)', 'RN-to-BSN'],
+    Psychology: ['BS in Psychology', 'BS in Psychology Pre-Counseling & Therapy'],
+    'Social Work': ['BSW - Bachelor of Social Work'],
+  },
+  'area-masters': {
+    Business: ['MBA - Master of Business Administration', 'MS in Human Resource Management'],
+    'Counseling & Therapy': [
+      'MS in Marriage & Family Therapy',
+      'MS in Clinical Mental Health Counseling',
+      'MS in School Counseling',
+    ],
+    Education: ['MS in Education'],
+    'Health Sciences': ['MHA - Master of Health Administration', 'MPH - Master of Public Health'],
+    'Information Technology': [
+      'MS in Analytics',
+      'MS in Cybersecurity and Applied AI',
+      'MS in Information Technology',
+    ],
+    Nursing: [
+      'MSN - Master of Science in Nursing',
+      'MSN NP - Master of Science in Nursing, Nurse Practitioner',
+    ],
+    Psychology: [
+      'MS in Applied Behavior Analysis',
+      'MS in Clinical Psychology',
+      'MS in Psychology',
+      'MS in School Psychology',
+    ],
+    'Social Work': ['MSW - Master of Social Work', 'MSW - Master of Social Work Advanced Standing'],
+  },
+  'area-doctoral': {
+    Business: ['DBA - Doctor of Business Administration'],
+    Education: ['EdD - Doctor of Education'],
+    'Health Sciences': ['DHA - Health Administration', 'DrPH - Doctor of Public Health'],
+    'Information Technology': ['DIT - Doctor of Information Technology'],
+    Nursing: ['DNP - Doctor of Nursing Practice'],
+    Psychology: [
+      'EdS in School Psychology',
+      'PhD in Behavior Analysis',
+      'PhD in Psychology',
+      'PsyD in Clinical Psychology',
+    ],
+    'Social Work': ['DSW - Doctor of Social Work'],
+  },
+  'area-certificates': {
+    Business: ['Graduate Certificate in Human Resource Management'],
+    'Counseling & Therapy': ['Counseling Certificates'],
+    'Health Sciences': ['Graduate Certificate in Public Health'],
+    Nursing: ['Post-Master’s Nursing Certificates'],
+    Psychology: ['Graduate Certificate in Applied Behavior Analysis'],
+  },
+  // Individual Courses has no third level — its rows are the final links.
+};
+
+// Desktop megamenus. Click (not hover) opens, matching how capella.edu's nav
+// behaves and avoiding a menu that fires when the pointer merely crosses the
+// bar. Only one is open at a time.
+function initMegaMenu() {
+  const triggers = [...document.querySelectorAll('.main-nav__links a[aria-controls]')];
+  if (!triggers.length) return;
+
+  const panelFor = (t) => document.getElementById(t.getAttribute('aria-controls'));
+
+  function close(trigger) {
+    const panel = panelFor(trigger);
+    trigger.setAttribute('aria-expanded', 'false');
+    if (panel) panel.hidden = true;
+  }
+
+  function closeAll(except) {
+    triggers.forEach((t) => {
+      if (t !== except) close(t);
+    });
+  }
+
+  // The wide menu starts at the nav CONTAINER's left edge, not under its
+  // trigger (the narrow menus do anchor to their trigger). `.main-nav__item` is
+  // `relative` for those, so shift this one back by the difference.
+  // Measured on every open rather than only on resize: the bar also changes
+  // size when `.main-nav--scrolled` kicks in and when webfonts land, either of
+  // which would otherwise leave a stale offset and push the panel off-screen.
+  function position(panel, trigger) {
+    const nav = document.querySelector('.main-nav');
+    const bar = document.querySelector('.main-nav__bar');
+    if (!panel || !nav || !bar) return;
+    const navRect = nav.getBoundingClientRect();
+    const barRect = bar.getBoundingClientRect();
+
+    // Every panel hangs from the BAR's bottom edge, so they all open at the
+    // same height regardless of which trigger you used.
+    panel.style.top = `${barRect.bottom - navRect.top}px`;
+
+    // The wide menu starts at the bar's left edge; the narrow ones sit under
+    // their own trigger.
+    const anchor = panel.classList.contains('megamenu--split')
+      ? barRect.left
+      : trigger.getBoundingClientRect().left;
+    panel.style.left = `${anchor - navRect.left}px`;
+  }
+
+  function open(trigger) {
+    closeAll(trigger);
+    const panel = panelFor(trigger);
+    trigger.setAttribute('aria-expanded', 'true');
+    if (panel) {
+      panel.hidden = false;
+      // Measured on open, not just on resize: the bar also changes size when
+      // `.main-nav--scrolled` kicks in and when webfonts land, either of which
+      // would otherwise leave a stale offset.
+      position(panel, trigger);
+    }
+  }
+
+  triggers.forEach((trigger) => {
+    trigger.addEventListener('click', (e) => {
+      e.preventDefault();
+      const isOpen = trigger.getAttribute('aria-expanded') === 'true';
+      if (isOpen) close(trigger);
+      else open(trigger);
+    });
+  });
+
+  // Degree-level rail switches the area panel beside it.
+  document.querySelectorAll('.megamenu__level-list').forEach((list) => {
+    const tabs = [...list.querySelectorAll('.megamenu__level')];
+    tabs.forEach((tab) => {
+      const select = () => {
+        tabs.forEach((t) => {
+          const on = t === tab;
+          t.classList.toggle('is-active', on);
+          t.setAttribute('aria-selected', String(on));
+          const p = document.getElementById(t.getAttribute('aria-controls'));
+          if (p) p.hidden = !on;
+        });
+      };
+      tab.addEventListener('click', select);
+      // Pointer-only: matches the real site, where sliding down the rail
+      // previews each level without a click. Not on focus, or keyboard
+      // arrowing through the rail would fight the roving selection.
+      tab.addEventListener('mouseenter', select);
+    });
+  });
+
+  // --- Third level: area of study -> its programs --------------------------
+  // capella.edu CASCADES: clicking an area opens a third column beside the
+  // areas rather than replacing them, so the trail (level > area) stays
+  // visible. Built with DOM APIs, not innerHTML: several program names contain
+  // "&" and a curly apostrophe.
+  const programCol = document.getElementById('degrees-programs-col');
+
+  function clearPrograms() {
+    if (!programCol) return;
+    programCol.hidden = true;
+    programCol.replaceChildren();
+    document
+      .querySelectorAll('.megamenu__area-list a[aria-current]')
+      .forEach((a) => a.removeAttribute('aria-current'));
+  }
+
+  document.querySelectorAll('.megamenu__panel').forEach((panel) => {
+    const map = MEGA_PROGRAMS[panel.id];
+    if (!map || !programCol) return;
+
+    panel.querySelectorAll('.megamenu__area-list a').forEach((link) => {
+      const area = link.textContent.trim();
+      const programs = map[area];
+      if (!programs) return; // leaf row - nothing deeper to show
+
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        programCol.replaceChildren();
+
+        const heading = document.createElement('h3');
+        heading.className = 'megamenu__programs-title';
+        heading.textContent = area;
+        programCol.appendChild(heading);
+
+        const ul = document.createElement('ul');
+        ul.className = 'megamenu__area-list';
+        programs.forEach((name) => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = '#';
+          a.textContent = name;
+          li.appendChild(a);
+          ul.appendChild(li);
+        });
+        programCol.appendChild(ul);
+        programCol.hidden = false;
+
+        panel
+          .querySelectorAll('.megamenu__area-list a')
+          .forEach((x) => x.removeAttribute('aria-current'));
+        link.setAttribute('aria-current', 'true');
+      });
+    });
+  });
+
+  // Changing degree level drops the third column - it belonged to the level
+  // you just left.
+  document.querySelectorAll('.megamenu__level').forEach((tab) => {
+    tab.addEventListener('click', clearPrograms);
+    tab.addEventListener('mouseenter', clearPrograms);
+  });
+
+  // Dismissal: click outside, or Escape (which returns focus to the trigger).
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.main-nav__item')) {
+      closeAll();
+      clearPrograms();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const openTrigger = triggers.find((t) => t.getAttribute('aria-expanded') === 'true');
+    if (!openTrigger) return;
+    close(openTrigger);
+    openTrigger.focus();
+  });
+}
+
+// Mobile navigation: a STACK of full-screen views that slide in from the right,
+// each with a "« Back" to pop — mirroring capella.edu's mobile nav. Not an
+// accordion: an earlier inline-expand version looked nothing like it and grew
+// taller than the viewport. The tree is derived from the megamenu DOM so the
+// desktop and mobile navs can't drift apart.
+function initMobileMenuTree() {
+  const panel = document.getElementById('mobile-nav-panel');
+  if (!panel) return;
+
+  // --- Derive the tree from the desktop megamenus -------------------------
+  const roots = [];
+  document.querySelectorAll('.main-nav__links > .main-nav__item').forEach((item) => {
+    const trigger = item.querySelector('a[aria-controls]');
+    if (!trigger) return;
+    const menu = document.getElementById(trigger.getAttribute('aria-controls'));
+    if (!menu) return;
+    const label = trigger.textContent.trim();
+
+    if (menu.classList.contains('megamenu--split')) {
+      const levels = [...menu.querySelectorAll('.megamenu__level')].map((lvl) => {
+        const areaPanel = document.getElementById(lvl.getAttribute('aria-controls'));
+        const levelLabel = lvl.textContent.replace('\u203A', '').trim();
+        const programs = MEGA_PROGRAMS[areaPanel.id] || {};
+        const areas = [...areaPanel.querySelectorAll('.megamenu__area-list a')].map((a) => {
+          const areaLabel = a.textContent.trim();
+          const list = programs[areaLabel];
+          return list
+            ? { label: areaLabel, heading: areaLabel, children: list.map((n) => ({ label: n })) }
+            : { label: areaLabel };
+        });
+        return { label: levelLabel, heading: levelLabel, children: areas };
+      });
+      roots.push({ label, children: levels });
+    } else {
+      const groups = [...menu.querySelectorAll('.megamenu__group')].map((g) => ({
+        heading: g.querySelector('.megamenu__group-title').textContent.trim(),
+        items: [...g.querySelectorAll('.megamenu__area-list a')].map((a) => ({
+          label: a.textContent.trim(),
+        })),
+      }));
+      roots.push({ label, groups });
+    }
+  });
+  if (!roots.length) return;
+
+  // --- View rendering ------------------------------------------------------
+  const viewport = document.createElement('div');
+  viewport.className = 'mobile-menu__viewport';
+
+  const footer = document.createElement('div');
+  footer.className = 'mobile-menu__footer';
+  ['Apply now', 'Request info'].forEach((t) => {
+    const a = document.createElement('a');
+    a.href = '#';
+    a.textContent = t;
+    footer.appendChild(a);
+  });
+
+  panel.replaceChildren(viewport, footer);
+
+  const stack = [];
+
+  function row(node, opts = {}) {
+    // `groups` counts as having children too — the Experience/Financing/
+    // Admissions menus are grouped lists, not a flat `children` array, and
+    // checking only `children` left them without a chevron or a tap target.
+    const hasChildren = !!(
+      (node.children && node.children.length) ||
+      (node.groups && node.groups.length)
+    );
+    const el = document.createElement(hasChildren ? 'button' : 'a');
+    if (hasChildren) el.type = 'button';
+    else el.href = '#';
+    el.className = 'mobile-menu__row' + (opts.strong ? ' mobile-menu__row--strong' : '');
+    el.append(node.label);
+
+    // Unlike the desktop menu, EVERY mobile row carries a chevron \u2014 including
+    // leaf program links, which is what the live mobile nav does (there the
+    // chevron reads as "goes somewhere", not "opens a level").
+    const chev = document.createElement('span');
+    chev.className = 'mobile-menu__chev';
+    chev.setAttribute('aria-hidden', 'true');
+    chev.textContent = '\u203A';
+    el.appendChild(chev);
+
+    if (hasChildren) {
+      el.addEventListener('click', () => push(node));
+    }
+    return el;
+  }
+
+  function makeView(node, isRoot) {
+    const view = document.createElement('div');
+    view.className = 'mobile-menu__view';
+
+    if (!isRoot) {
+      const back = document.createElement('button');
+      back.type = 'button';
+      back.className = 'mobile-menu__back';
+      back.textContent = '\u00AB Back';
+      back.addEventListener('click', pop);
+      view.appendChild(back);
+    }
+
+    if (node.heading) {
+      const h = document.createElement('p');
+      h.className = 'mobile-menu__heading';
+      h.textContent = node.heading;
+      view.appendChild(h);
+    }
+
+    if (node.groups) {
+      node.groups.forEach((g) => {
+        const h = document.createElement('p');
+        h.className = 'mobile-menu__group';
+        h.textContent = g.heading;
+        view.appendChild(h);
+        g.items.forEach((child) => view.appendChild(row(child)));
+      });
+    } else {
+      (node.children || []).forEach((child) => view.appendChild(row(child, { strong: isRoot })));
+    }
+    return view;
+  }
+
+  function push(node) {
+    const view = makeView(node, false);
+    viewport.appendChild(view);
+    // Force a reflow so the browser sees the off-screen start position before
+    // the class flips it in — otherwise it jumps rather than slides.
+    void view.offsetWidth;
+    view.classList.add('is-current');
+    stack.push(view);
+  }
+
+  function pop() {
+    const view = stack.pop();
+    if (!view) return;
+    view.classList.remove('is-current');
+    const done = () => view.remove();
+    if (prefersReducedMotion) done();
+    else view.addEventListener('transitionend', done, { once: true });
+  }
+
+  function reset() {
+    while (stack.length) stack.pop().remove();
+  }
+
+  const rootView = makeView({ children: roots }, true);
+  rootView.classList.add('is-current', 'mobile-menu__view--root');
+  viewport.appendChild(rootView);
+
+  // Closing the menu returns it to the top level, so it never reopens deep
+  // inside a branch you already left.
+  document.querySelector('.main-nav__menu-btn')?.addEventListener('click', () => {
+    if (panel.hidden) reset();
+  });
+}
+
 function initMobileNav() {
   const button = document.querySelector('.main-nav__menu-btn');
   const panel = document.getElementById('mobile-nav-panel');
   if (!button || !panel) return;
 
+  // ⚠️ The panel is `position: fixed` and MUST be a direct child of <body>.
+  // Authored inside `.main-nav` it kept collapsing to a 3px sliver once you
+  // scrolled: `.main-nav--scrolled` applies (and transitions) `backdrop-filter`,
+  // and a backdrop-filter — like transform/filter/will-change/contain — makes
+  // the element the CONTAINING BLOCK for fixed descendants. `top/bottom` then
+  // resolved against the ~67px header instead of the viewport, so the menu
+  // "opened" onto the page below it. Reparenting once, here, makes the panel
+  // immune to whatever effects the header picks up later.
+  if (panel.parentElement !== document.body) document.body.appendChild(panel);
+
+  // Anchor to the header's real bottom rather than a hardcoded offset: the
+  // utility bar and nav are separately sticky and the bar's padding changes in
+  // the scrolled state, so the seam moves. Measured on open (and on resize
+  // while open) it always meets the nav bar exactly, at any scroll position.
+  function anchor() {
+    const nav = document.querySelector('.main-nav');
+    if (nav) panel.style.top = `${Math.round(nav.getBoundingClientRect().bottom)}px`;
+  }
+
   button.addEventListener('click', () => {
     const isOpen = button.getAttribute('aria-expanded') === 'true';
     button.setAttribute('aria-expanded', String(!isOpen));
     button.setAttribute('aria-label', isOpen ? 'Open menu' : 'Close menu');
+    if (!isOpen) anchor();
     panel.hidden = isOpen;
   });
+
+  // The header shrinks as you scroll, so keep the seam honest while open.
+  window.addEventListener('resize', () => {
+    if (!panel.hidden) anchor();
+  });
+  window.addEventListener('scroll', () => {
+    if (!panel.hidden) anchor();
+  }, { passive: true });
 
   panel.querySelectorAll('a').forEach((link) => {
     link.addEventListener('click', () => {
@@ -734,6 +1152,29 @@ function initCtaVideos() {
   const videos = [...section.querySelectorAll('.action-cta__video')];
   if (!videos.length || prefersReducedMotion) return;
 
+  // Phones get the 960-wide encode (~2.2MB vs ~5.3MB). Done in JS rather than
+  // `media` attributes on <source>, which not every browser honours — getting
+  // that wrong would serve the small file to desktops. Safe to rewrite the srcs
+  // here because `preload="none"` means nothing has been requested yet.
+  if (window.matchMedia('(max-width: 768px)').matches) {
+    videos.forEach((video) => {
+      const { srcWebmSm, srcMp4Sm, typeMp4Sm } = video.dataset;
+      if (!srcWebmSm && !srcMp4Sm) return;
+      video.querySelectorAll('source').forEach((source) => {
+        // startsWith, not ===: the types carry codec strings.
+        if (source.type.startsWith('video/webm')) {
+          if (srcWebmSm) source.src = srcWebmSm;
+        } else if (srcMp4Sm) {
+          source.src = srcMp4Sm;
+          // The small encode is a lower H.264 level, so its codec string
+          // differs — leaving the 1440 one here would misdeclare it.
+          if (typeMp4Sm) source.type = typeMp4Sm;
+        }
+      });
+      video.load();
+    });
+  }
+
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -753,6 +1194,65 @@ function initCtaVideos() {
   observer.observe(section);
 }
 
+// Footer partner carousel. Mirrors the live site: manual arrows only (no
+// autoplay), paging by a whole view. `--per-view` lives in CSS so the
+// breakpoints own the responsive behaviour and this only has to read it back.
+function initFooterPartners() {
+  const root = document.querySelector('.footer__partners');
+  if (!root) return;
+
+  const track = root.querySelector('.footer__partners-track');
+  const items = [...root.querySelectorAll('.footer__partners-item')];
+  const prev = root.querySelector('.footer__partners-arrow--prev');
+  const next = root.querySelector('.footer__partners-arrow--next');
+  if (!track || !items.length || !prev || !next) return;
+
+  let index = 0;
+
+  const perView = () => {
+    const raw = parseInt(getComputedStyle(root).getPropertyValue('--per-view'), 10);
+    return Number.isFinite(raw) && raw > 0 ? raw : 1;
+  };
+  // Last valid start index — never scroll past the final full view, or the
+  // track would leave empty space on the right.
+  const maxIndex = () => Math.max(0, items.length - perView());
+
+  function render() {
+    index = Math.min(index, maxIndex());
+    track.style.transform = `translateX(${(-index * 100) / perView()}%)`;
+    // Disabled (not hidden) at the ends so the viewport width never changes.
+    prev.disabled = index <= 0;
+    next.disabled = index >= maxIndex();
+    items.forEach((item, i) => {
+      const visible = i >= index && i < index + perView();
+      item.setAttribute('aria-hidden', String(!visible));
+      const link = item.querySelector('a');
+      if (link) link.tabIndex = visible ? 0 : -1;
+    });
+  }
+
+  prev.addEventListener('click', () => {
+    index = Math.max(0, index - perView());
+    render();
+  });
+  next.addEventListener('click', () => {
+    index = Math.min(maxIndex(), index + perView());
+    render();
+  });
+
+  // per-view changes with the breakpoint, so re-clamp on resize.
+  let raf = null;
+  window.addEventListener('resize', () => {
+    if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = null;
+      render();
+    });
+  });
+
+  render();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initCarousel();
   initProgramFinder();
@@ -764,6 +1264,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initCardScroll();
   initContentParallax();
   initNavScroll();
+  initMegaMenu();
+  initMobileMenuTree();
   initMobileNav();
   initCtaVideos();
+  initFooterPartners();
 });

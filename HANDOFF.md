@@ -146,13 +146,12 @@ result there means the parallax will be invisible again.
 - **Figma-sourced assets expire.** Original art was pulled via Figma MCP URLs
   that expire (~7 days). The committed copies in `public/assets/` are the source
   of truth now; don't expect the Figma URLs to still resolve.
-- **CTA background videos:** the closing "what are you waiting for?" section
-  plays three looping clips (`public/assets/videos/{leftLady,middleMan,rightLady}_loop.{webm,mp4}`)
-  — see §12. The static `cta-people.png` (desktop) and `cta-mobile.jpg` (mobile)
-  are now used **only** as the reduced-motion fallback (loaded via CSS
-  `background-image` scoped to the reduced-motion media query). `cta-mobile`
-  was recompressed PNG→JPEG (928 KB → 140 KB). The old per-person `cta-1/2/3.png`
-  are unused legacy art (safe to delete).
+- **CTA background video:** the closing "what are you waiting for?" section
+  plays a single full-bleed TV-spot clip (`public/assets/videos/cta-tvspot*`)
+  — see §12. The reduced-motion fallback is the clip's own poster frame, so no
+  extra image is fetched. The previous three-clip set
+  (`{leftLady,middleMan,rightLady}_loop.{webm,mp4}`, ~6.4 MB) plus
+  `cta-people.png` / `cta-mobile.jpg` are now **unreferenced** — safe to delete.
 
 ### 3d. Committed but unreferenced assets
 
@@ -163,7 +162,10 @@ don't go hunting for the code that uses them:
 | --- | --- | --- |
 | `hero-base.png` | 12.2 MB | Superseded by the two WebP hero layers (§3a). |
 | `hero.png` | 6.1 MB | **Keep** — the regeneration source for those layers. |
-| `footer-partner-{devmountain,jwmi,sei,sophia,strayer}.svg`, `footer-partners-strip.png` | ~46 KB | The footer renders `footer-logos-strip.png` instead. Individual logos are here if that strip is ever split up. |
+| `footer-partner-{sei,strayer,jwmi}.svg` | ~30 KB | **In use** by the footer partner carousel (§13). |
+| `footer-partner-devmountain.svg` | ~8 KB | **⚠️ Mislabelled — this is the SOPHIA wordmark, not Devmountain.** Don't wire it up by filename. |
+| `footer-partner-sophia.svg` | ~1 KB | Sophia droplet **mark only**, not the wordmark lockup. |
+| `footer-logos-strip.png`, `footer-partners-strip.png` | ~46 KB | The old flat 4320×210 strip, with the arrows *painted into the image*. Superseded by the carousel; kept as the slice source for `partners/{devmountain,sophia}.png`. |
 | `footer-arrow-{next,prev}.svg` | ~0 KB | Empty files. |
 | `cta-1/2/3.png` | ~2.2 MB | Legacy, see above. |
 
@@ -342,6 +344,44 @@ on hover.
   page. Its rule sits *after* `:hover`/`:active` at equal specificity so the
   current item keeps the stronger fill instead of appearing to downgrade to the
   hover wash when pointed at.
+
+### Megamenus (`initMegaMenu`)
+
+All four nav items open a dropdown. The information architecture — every label
+and grouping — was lifted from the live **capella.edu** nav so the prototype
+matches production; the `href`s are all `#` because this is a single page.
+
+- **Degrees & Programs** is the two-column one (`.megamenu--split`): a dark rail
+  of degree levels on the left driving a light panel of areas of study on the
+  right, plus the red *Find your program* CTA. Left rail is `role="tablist"`,
+  each level a `role="tab"` owning a `role="tabpanel"`.
+- **Capella Experience / Financing / Admissions** are single-row
+  (`.megamenu__inner--columns`): grouped link lists, one column per group.
+- Only the **areas** level is reproduced under each degree level, not the
+  individual programs (capella.edu reveals those at a third level). That
+  matches the reference screenshot and keeps `index.html` reasonable — the full
+  program lists would be 60+ more links.
+
+Gotchas:
+- ⚠️ **`.main-nav__item` is `position: static` on purpose.** The panel is
+  absolutely positioned against `.main-nav` (sticky, so it's the containing
+  block) to span the full header width. Give the `li` `position: relative` and
+  the panel collapses into that one nav item's box.
+- ⚠️ **`.megamenu[hidden] { display: none }` is required.** `.megamenu__inner`
+  sets `display: flex`, which otherwise beats the `hidden` attribute and the
+  panels never close.
+- Triggers stay `<a aria-haspopup>` rather than `<button>` — this is what
+  capella.edu does, and it keeps all the existing `.main-nav__links a` styling
+  (pill, hover, focus) applying unchanged.
+- An open trigger holds the `--nav-pill-current` fill via
+  `[aria-expanded="true"]`, so you can see which menu you're in while the
+  pointer is down inside the panel.
+- The degree rail responds to **`mouseenter` as well as click**, matching the
+  real site. It is deliberately *not* wired to `focus`, or keyboard-arrowing
+  through the rail would fight the roving selection.
+- Dismissal: click outside, or `Escape` (which returns focus to the trigger).
+- Hidden below the 1024px hamburger breakpoint — the mobile panel is the
+  navigation there, and it is untouched by this.
 - The mobile hamburger is a bare icon at rest but keeps `border-radius: 50%`,
   so its hover / press / open fills render as a circle rather than a square.
 - Press feedback (the only motion) is disabled under `prefers-reduced-motion`;
@@ -624,34 +664,76 @@ browsers:
 
 ---
 
-## 12. CTA background videos
+## 12. CTA background video
 
-The closing "what are you waiting for?" section plays three looping clips
-(left lady / middle man / right lady) instead of a static image.
+The closing "what are you waiting for?" section plays a single full-bleed
+TV-spot clip (Figma UI Elements `2008:19373`). It replaced an earlier three-clip
+strip.
 
-- **Files:** `public/assets/videos/{leftLady,middleMan,rightLady}_loop.{webm,mp4}`.
-  Each clip starts and ends on the empty stool so the `loop` is seamless (no
-  jump cut). Each `<video>` lists the **WebM source first, MP4 second** — the
-  browser picks WebM where supported (Chrome/Firefox/Edge) and falls back to
-  MP4 (Safari).
+- **Files** (all in `public/assets/videos/`, encoded from a 1440×750 / 45s /
+  24fps / silent 84 MB master):
+
+  | file | size | notes |
+  | --- | --- | --- |
+  | `cta-tvspot.webm` | 4.5 MB | VP9 CRF 36 — served first |
+  | `cta-tvspot.mp4` | 5.3 MB | H.264 CRF 28, `+faststart` — Safari fallback |
+  | `cta-tvspot-sm.webm` | 2.1 MB | 960-wide, VP9 CRF 40 — phones |
+  | `cta-tvspot-sm.mp4` | 2.3 MB | 960-wide, H.264 CRF 30 — phones |
+  | `cta-tvspot-poster.jpg` | 79 KB | first frame; poster + reduced-motion still |
+
+  Audio is stripped (`-an`) — the master is silent and an audio track would only
+  add bytes. `+faststart` puts the moov atom first so playback can begin while
+  the file is still streaming.
+- **Source order:** WebM first, MP4 second — the browser takes WebM where
+  supported (Chrome/Firefox/Edge) and falls back to MP4 (Safari).
 - **Autoplay-as-background:** `muted` + `playsinline` + `loop` (required for
   autoplay, incl. iOS). There is **no `autoplay` attribute** — see lazy-load.
-- **Lazy-load (`initCtaVideos()`):** videos use `preload="none"`; an
-  IntersectionObserver calls `play()` only when the section is within ~200px of
-  the viewport and `pause()`s when it leaves. So the ~2.7 MB of WebM is not
-  fetched on initial page load (the section is below the fold). Hidden videos
-  are skipped (`offsetParent === null`), so the 2nd/3rd clips never download on
-  mobile.
-- **Layout:** 3-up grid on desktop; on phones (`≤768px`) only the **first**
-  clip is shown full-bleed (`nth-child(n+2)` hidden) — three strips would be too
-  narrow at 375px.
-- **Placeholder:** `.action-cta__video { background: #d5a461 }` (sampled from the
-  clip backdrop) avoids a black flash before the first frame paints.
-- **Reduced motion:** under `prefers-reduced-motion: reduce`, `initCtaVideos()`
-  bails and the CSS hides the videos and shows the static image
-  (`cta-people.png` desktop / `cta-mobile.jpg` mobile) via a `background-image`
-  scoped to the media query — so that image is only fetched by reduced-motion
-  users; everyone else skips it.
-- **If you swap the clips:** keep the seamless empty-stool loop point, re-export
-  both WebM + MP4, and keep them small (right lady is currently the heaviest at
-  ~1.4 MB WebM — a good target if you trim further).
+- **Lazy-load (`initCtaVideos()`):** `preload="none"` plus an
+  IntersectionObserver that calls `play()` only when the section is within
+  ~200px of the viewport and `pause()`s when it leaves. Nothing is fetched on
+  initial load — the section is far below the fold.
+- **⚠️ Phone variant is chosen in JS, not `media` attributes.** `initCtaVideos()`
+  rewrites the `<source>` srcs to the `-sm` pair when
+  `(max-width: 768px)` matches, then calls `load()`. This is safe because
+  `preload="none"` means nothing has been requested yet. `media` on `<source>`
+  is *not* reliably honoured for `<video>`; if a browser ignored it, the small
+  file would be served to desktops instead.
+- **Placeholder:** the `poster` paints instantly, over a
+  `.action-cta__video { background: #6f7472 }` so there's no black flash.
+- **Reduced motion:** `initCtaVideos()` bails, so `play()` is never called and
+  `preload="none"` means the video bytes are never fetched. The poster frame is
+  the fallback image, set as a `background-image` scoped to the media query.
+- **Layout:** full-bleed 1440×750 on desktop; on phones the section takes the
+  design's 375×687 portrait ratio and `object-fit: cover` crops the same
+  landscape master. The Figma references a separate `tvspot-clip-mobile` portrait
+  asset — if that gets exported, add it as a third encode rather than cropping.
+- **Re-encoding:** there is no `ffmpeg` on this machine by default;
+  `pip install --user imageio-ffmpeg` provides a static binary at
+  `~/Library/Python/3.9/lib/python/site-packages/imageio_ffmpeg/binaries/`.
+
+## 13. Footer partner carousel
+
+The five Strategic Education brand logos sit in a real carousel, mirroring the
+behaviour on capella.edu: **manual arrows only, no autoplay**, paging by a whole
+view.
+
+- **Slides per view** is driven entirely by `--per-view` on `.footer__partners`
+  (6 desktop / 3 ≤1280 / 1 ≤768, matching the live site). `initFooterPartners()`
+  reads that value back out of the computed style, so adding a breakpoint means
+  touching CSS only.
+- **Arrows disable rather than hide** at each end, so the viewport width never
+  changes and the logos don't shift. With 5 logos in 6 desktop slots everything
+  fits, so both arrows are correctly disabled there; they become active as soon
+  as a 6th brand is added.
+- `aria-hidden` and `tabindex` track which slides are in view, so off-screen
+  logos aren't announced or tab-focusable.
+- **Logo provenance is not what the filenames suggest** — see §3d. Devmountain
+  and Sophia are PNGs sliced from the old strip because no correct SVG exists
+  for either. Each was checked visually before being wired up.
+- **All 10 live brands are present**, in the same order as capella.edu, using the
+  official exports pulled from `capella.edu/content/dam/...` into
+  `public/assets/partners/`. The three oversized PNGs (Sophia, JWMI,
+  Degrees@Work — up to 7185px wide) were trimmed, resized to 176px tall and
+  converted to greyscale+alpha; they are pure white artwork, so dropping colour
+  is lossless. Adding an 11th brand is one `<li>` — no JS or CSS change.
+- The older `footer-partner-*.svg` files are now fully superseded and unused.
