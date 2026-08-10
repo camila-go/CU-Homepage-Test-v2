@@ -236,6 +236,35 @@ Specced in the **UI Elements** Figma
   outline once the fill is gone.
 - Press adds a stronger fill plus a slight scale-down; `:focus-visible` is a
   white ring everywhere. The logo and hamburger have their own equivalents.
+
+### Buttons and chips invert on hover
+
+The same "invert" language runs through the rest of the UI — a **filled** rest
+state becomes an **outlined** hover state, not a darker fill. Two places
+implement it:
+
+- **`.btn--white`** (hero *Get started*, both *Apply now* buttons): solid white
+  → transparent with a 2px white ring and white text
+  ([hero `2001:456`](https://www.figma.com/design/mqSJTp9qWvsAU8n08FFlk9/UI-Elements-for-Homepage-Proto--Copy-?node-id=2001-448)).
+  The rule lives on the variant so all three behave identically. ⚠️ It assumes a
+  **dark or photo backdrop** — true of all three current usages. A white button
+  on a light background would need its own hover.
+- **`.chip`** (program finder,
+  [`2001:335`](https://www.figma.com/design/mqSJTp9qWvsAU8n08FFlk9/UI-Elements-for-Homepage-Proto--Copy-?node-id=2001-335)):
+
+  | State | Fill | Border |
+  | --- | --- | --- |
+  | rest | `--color-chip-rest` `#4f4f4f` | none (transparent) |
+  | hover | transparent | 2px `--color-chip-hover-border` `#8e8e8e` |
+  | selected (`.chip--active`) | transparent | 2px `--color-stat-blue` `#94b7bb` |
+
+  This is the **inverse** of the original implementation (which was outlined at
+  rest and filled on hover) — don't "fix" it back.
+
+⚠️ **Rings are inset `box-shadow`s, and the chip's rest border is a transparent
+2px, both for the same reason:** the element must not change size between
+states. A real 0→2px border makes buttons resize and the whole chip row jiggle
+on hover.
 - ⚠️ **The pill's padding replaces the list gap — don't "restore" the gap.**
   `.main-nav__links` went from `gap: 30px` to `gap: 2px` when the links took on
   their own inline padding, which keeps text-to-text spacing at the same 30px

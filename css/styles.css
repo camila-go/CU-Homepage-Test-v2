@@ -163,9 +163,37 @@ button {
   color: var(--color-white);
 }
 
+/* White buttons INVERT on hover — solid white fill becomes transparent with a
+   2px white ring and white text (Figma: hero CTA 2001:456, nav Apply now
+   2001:170). The ring is an inset box-shadow, not a border, so the button
+   keeps its size and doesn't shift the layout around it. `.btn:hover`'s
+   opacity is cancelled: with the fill gone it would only dim the outline.
+   NOTE: this assumes a dark/photo backdrop, which is true of all three current
+   usages (both Apply now buttons + the hero CTA). A white button on a LIGHT
+   background would need its own hover. */
 .btn--white {
   background: var(--color-white);
   color: var(--color-uni-black);
+}
+
+.btn--white:hover,
+.btn--white:focus-visible {
+  opacity: 1;
+  background: transparent;
+  color: var(--color-white);
+  box-shadow: inset 0 0 0 2px var(--color-white);
+}
+
+.btn--white:active {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--color-white);
+  box-shadow: inset 0 0 0 2px var(--color-white);
+}
+
+.btn--white:focus-visible {
+  outline: var(--nav-focus-ring);
+  outline-offset: var(--nav-focus-offset);
 }
 
 .btn--outline {
@@ -190,13 +218,22 @@ button {
   letter-spacing: -0.28px;
 }
 
+/* Program-finder chips (Figma 2001:335). The states are the INVERSE of what
+   you'd guess: the chip is FILLED at rest and goes OUTLINED on hover/selected,
+   not the other way around.
+     rest      solid --color-chip-rest fill, no visible border
+     hover     fill drops away, 2px --color-chip-hover-border ring
+     selected  fill drops away, 2px --color-stat-blue ring
+   The rest border is a *transparent* 2px so the box never changes size between
+   states — a 0→2px border would jiggle the row on hover. */
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   height: 44px;
   padding: 12px 20px;
-  border: 1px solid var(--color-neutral-200);
+  background: var(--color-chip-rest);
+  border: 2px solid transparent;
   border-radius: var(--radius-chip);
   color: var(--color-white);
   font-weight: 700;
@@ -206,17 +243,24 @@ button {
 }
 
 .chip:hover {
+  background: transparent;
+  border-color: var(--color-chip-hover-border);
+}
+
+.chip:focus-visible {
+  outline: var(--nav-focus-ring);
+  outline-offset: var(--nav-focus-offset);
+}
+
+.chip:active {
   background: rgba(255, 255, 255, 0.08);
-  border-color: var(--color-white);
+  border-color: var(--color-chip-hover-border);
 }
 
-.chip--active {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: var(--color-stat-blue);
-}
-
-.chip--active:hover {
-  background: rgba(255, 255, 255, 0.28);
+.chip--active,
+.chip--active:hover,
+.chip--active:active {
+  background: transparent;
   border-color: var(--color-stat-blue);
 }
 
@@ -753,42 +797,11 @@ button {
   flex-shrink: 0;
 }
 
-/* Apply now inverts on hover: solid white → transparent with a 2px white ring
-   and white text (Figma node 2001:170). The ring is an inset box-shadow rather
-   than a real border so the button doesn't change size and shift the bar.
-   `.btn:hover`'s opacity is cancelled here — with the fill gone it would just
-   dim the outline. */
-.main-nav__apply,
-.main-nav__mobile-apply {
-  transition:
-    background var(--duration-fast) ease,
-    color var(--duration-fast) ease,
-    box-shadow var(--duration-fast) ease,
-    transform var(--duration-fast) ease;
-}
-
-.main-nav__apply:hover,
-.main-nav__apply:focus-visible,
-.main-nav__mobile-apply:hover,
-.main-nav__mobile-apply:focus-visible {
-  opacity: 1;
-  background: transparent;
-  color: var(--color-white);
-  box-shadow: inset 0 0 0 2px var(--color-white);
-}
-
+/* Apply now's hover inversion lives on `.btn--white` (see §buttons) so the hero
+   CTA behaves identically. Only the nav's press nudge is added here. */
 .main-nav__apply:active,
 .main-nav__mobile-apply:active {
-  background: rgba(255, 255, 255, 0.14);
-  color: var(--color-white);
-  box-shadow: inset 0 0 0 2px var(--color-white);
   transform: scale(0.97);
-}
-
-.main-nav__apply:focus-visible,
-.main-nav__mobile-apply:focus-visible {
-  outline: var(--nav-focus-ring);
-  outline-offset: var(--nav-focus-offset);
 }
 
 /* The logo is a link: it needs a visible focus ring and a light hover cue. */

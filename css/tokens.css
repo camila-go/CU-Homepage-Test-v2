@@ -13,6 +13,9 @@
   --color-neutral-100: #d4d4d4;
   --color-neutral-200: #adadad;
   --color-light-gray: #f6f7f7;
+  /* Program-finder chips, sampled from the UI Elements Figma (node 2001:335) */
+  --color-chip-rest: #4f4f4f;
+  --color-chip-hover-border: #8e8e8e;
 
   /* Figma display: Acumin Pro Extra Condensed (maps to Acumin VF styles in dev mode) */
   --font-display: 'acumin-pro-extra-condensed', sans-serif;
