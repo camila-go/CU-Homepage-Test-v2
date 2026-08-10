@@ -22,24 +22,12 @@ function initCarousel() {
   let activeIndex = 0;
   let carouselSeen = false;
 
-  // Re-run the card slide-in + the staggered text reveal for a slide. The card
-  // (`.carousel-reveal`) slides in from the right; its inner text (title, body,
-  // attribution, button) then staggers in — those are driven purely by CSS off
-  // the card's `.is-visible`, but we must reset THEIR transitions too, so a
-  // revisited slide doesn't animate its text *out* before sliding back in.
-  const TEXT_SEL =
-    '.carousel__content .carousel__title, .carousel__content .carousel__body,' +
-    ' .carousel__content .carousel__attribution, .carousel__content .btn';
-
+  // Mark a slide's card as revealed. The card itself slides in (scroll-driven,
+  // see initCardScroll); its inner text does NOT animate, so there are no
+  // per-element transitions to reset here any more.
   function revealSlide(slide) {
     if (!slide) return;
     const card = slide.querySelector('.carousel-reveal');
-    const texts = slide.querySelectorAll(TEXT_SEL);
-    const all = [...(card ? [card] : []), ...texts];
-    all.forEach((el) => { el.style.transition = 'none'; });
-    if (card) card.classList.remove('is-visible');
-    void slide.offsetWidth; // force reflow so the re-add transitions
-    all.forEach((el) => { el.style.transition = ''; });
     if (card) card.classList.add('is-visible');
   }
 
@@ -314,9 +302,11 @@ function initRevealAnimations() {
 }
 
 // Headings that get the masked, word-by-word rise-in-on-scroll effect.
+// Deliberately short: the tiles, accreditation, action-CTA, program-finder
+// ("Catch what you're chasing") and carousel headings were all removed from
+// this list by request — add back only if asked.
 const TEXT_REVEAL_SELECTORS = [
   '.hero__title',
-  '.program-finder__title',
   '.stats-section__title',
 ];
 

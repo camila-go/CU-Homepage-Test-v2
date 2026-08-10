@@ -249,6 +249,9 @@ implement it:
   The rule lives on the variant so all three behave identically. ⚠️ It assumes a
   **dark or photo backdrop** — true of all three current usages. A white button
   on a light background would need its own hover.
+- **`.btn--secondary`** (the two carousel card buttons): the same move
+  dark-on-light — solid black → transparent with a 2px black ring and black
+  text, since these sit on the card's light grey panel.
 - **`.chip`** (program finder,
   [`2001:335`](https://www.figma.com/design/mqSJTp9qWvsAU8n08FFlk9/UI-Elements-for-Homepage-Proto--Copy-?node-id=2001-335)):
 
@@ -387,9 +390,9 @@ All live in `main.js`, initialized on `DOMContentLoaded`. Every one is
 
 | Function | What it does | Trigger |
 | --- | --- | --- |
-| `initTextReveal()` | Splits target headings into per-word spans (`.word` mask + `.word__inner`) that rise up from behind a clip mask, staggered via `--word-index`. | IntersectionObserver (per heading) |
+| `initTextReveal()` | Splits target headings into per-word spans (`.word` mask + `.word__inner`) that rise up from behind a clip mask, staggered via `--word-index`. **`TEXT_REVEAL_SELECTORS` is deliberately down to two headings** — hero + stats. The tiles, accreditation, action-CTA and program-finder ("Catch what you're chasing") headings were all removed by request; don't add them back unless asked. | IntersectionObserver (per heading) |
 | `initRevealAnimations()` | Fade-up for elements with `.reveal`. Optional stagger via `data-reveal-delay="N"` (× 80ms). | IntersectionObserver |
-| Carousel card reveal (in `initCarousel()`) | The whole featured-story card (`.carousel__card.carousel-reveal`) **slides in from the right** + fades (1.8s). Its inner text (title → body/attribution → button) then **staggers in** (fade+rise, 1.5s, delays 0.35/0.55/0.75s), driven by CSS off the card's `.is-visible`. Fires on first scroll-in, then **re-animates on every slide change**. See note below. | IntersectionObserver (first view) + `goTo()` + safety timeout |
+| Carousel card reveal (in `initCarousel()`) | Marks the card `.is-visible`; the movement itself is `initCardScroll()` below. The card's **inner text does not animate** — it rides in with the card. (An earlier version staggered title → body → button; removed by request.) | IntersectionObserver (first view) + `goTo()` + safety timeout |
 | `initCardScroll()` | **Scroll-driven** (scrubbed, not timed) slide-in for the carousel cards: their `translate` tracks the carousel's position in the viewport, spread over ~90% of a viewport height so it's slow. **Ratcheted** — it only ever moves toward settled, so scrolling back up never pushes the cards out again. | `scroll`/`resize`, throttled with `requestAnimationFrame` |
 | `initCountUp()` | Animates the stats numbers (40 / 80 / 1,530+ / 63%) counting up with a custom cubic-bezier ease. Preserves prefixes/suffixes/grouping. | IntersectionObserver (threshold 0.4) |
 | `initParallax()` | Translates the content-band background image on scroll for depth. | `scroll`/`resize`, throttled with `requestAnimationFrame` |

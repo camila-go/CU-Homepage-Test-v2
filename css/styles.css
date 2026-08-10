@@ -153,9 +153,33 @@ button {
   color: var(--color-white);
 }
 
+/* Card buttons invert the same way `.btn--white` does, but dark-on-light: the
+   solid black pill becomes transparent with a 2px black ring and black text,
+   since these sit on the carousel card's light grey panel. Ring is an inset
+   box-shadow so the button keeps its size. Only used on the carousel cards. */
 .btn--secondary {
   background: var(--color-black);
   color: var(--color-white);
+}
+
+.btn--secondary:hover,
+.btn--secondary:focus-visible {
+  opacity: 1;
+  background: transparent;
+  color: var(--color-black);
+  box-shadow: inset 0 0 0 2px var(--color-black);
+}
+
+.btn--secondary:active {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--color-black);
+  box-shadow: inset 0 0 0 2px var(--color-black);
+}
+
+.btn--secondary:focus-visible {
+  outline: 2px solid var(--color-black);
+  outline-offset: var(--nav-focus-offset);
 }
 
 .btn--dark {
@@ -453,57 +477,14 @@ button {
    scroll rather than playing on a fixed timer. No transition here (JS updates
    it per frame). `translate` (not `transform`) so it composes with the carousel
    track's own translateX (navigation). Opacity stays 1 — the card can never be
-   stuck invisible; only its inner text fades/staggers (below). */
+   stuck invisible.
+
+   The card's inner text does NOT animate: it rides in with the card. An earlier
+   version staggered the title/body/button in on their own delays; that was
+   removed by request. Don't reintroduce per-element reveals here — the card
+   slide is the only motion. */
 .carousel-reveal {
   will-change: translate;
-}
-
-/* Text inside each card staggers in (slow fade + rise), layered on top of the
-   whole-card slide-in. Driven purely by CSS off the card's `.is-visible`
-   (revealSlide resets these transitions too — see initCarousel). Uses
-   `translate` (not transform) so it composes with the desktop absolute-position
-   rules on carousel content. */
-.carousel__content .carousel__title,
-.carousel__content .carousel__body,
-.carousel__content .carousel__attribution,
-.carousel__content .btn {
-  opacity: 0;
-  translate: 0 20px;
-  transition:
-    opacity 1.5s var(--ease-out-expo),
-    translate 1.5s var(--ease-out-expo);
-}
-
-.carousel__card.is-visible .carousel__content .carousel__title,
-.carousel__card.is-visible .carousel__content .carousel__body,
-.carousel__card.is-visible .carousel__content .carousel__attribution,
-.carousel__card.is-visible .carousel__content .btn {
-  opacity: 1;
-  translate: 0 0;
-}
-
-/* Stagger: title first, then body/attribution, then button — offset from the
-   card's own slide so the text settles in after the card has arrived. */
-.carousel__card.is-visible .carousel__content .carousel__title {
-  transition-delay: 0.35s;
-}
-.carousel__card.is-visible .carousel__content .carousel__body,
-.carousel__card.is-visible .carousel__content .carousel__attribution {
-  transition-delay: 0.55s;
-}
-.carousel__card.is-visible .carousel__content .btn {
-  transition-delay: 0.75s;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .carousel__content .carousel__title,
-  .carousel__content .carousel__body,
-  .carousel__content .carousel__attribution,
-  .carousel__content .btn {
-    opacity: 1;
-    translate: none;
-    transition: none;
-  }
 }
 
 /* Masked word reveal — headings rise up from behind a clip mask, staggered
