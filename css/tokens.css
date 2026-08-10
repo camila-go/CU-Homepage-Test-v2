@@ -32,7 +32,6 @@
   --text-display-stats: 4.6875rem; /* 75px */
   --text-h2: 3rem; /* 48px */
   --text-program-finder: 2.8125rem; /* 45px */
-  --text-carousel-title: 4.5rem; /* 72px */
   --text-h4: 1.75rem; /* 28px */
   --text-h5: 1.5rem; /* 24px */
   --text-h6: 1.25rem; /* 20px */
@@ -64,12 +63,6 @@
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-border-hover: rgba(255, 255, 255, 0.28);
   --glass-blur: 16px;
-  --glass-sheen: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.22) 0%,
-    rgba(255, 255, 255, 0.04) 40%,
-    rgba(255, 255, 255, 0) 60%
-  );
 
   /* Nav interaction states. The nav sits on near-black, so hover/press read as
      progressively stronger white washes, and focus is a plain white ring.

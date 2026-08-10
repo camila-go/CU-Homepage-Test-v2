@@ -14,7 +14,7 @@ What changed from v1, and where the details are:
 | --- | --- | --- |
 | Featured-story cards | Rebuilt to the **Card Update** Figma (`1440 × 600`, new copy and people, Figma-variable type scale, portraits that break out above the card) | §3, §6 |
 | Hero | Two-layer red-wall parallax + ambient drift; `initContentParallax` rewritten to be scroll-keyed so the headline no longer rides up over the faces | §3a, §7 |
-| Carousel motion | Scroll-driven, ratcheted card slide-in + staggered card text | §7 |
+| Carousel motion | Scroll-driven, ratcheted card slide-in (the card's text does not animate) | §7 |
 | Nav | Rounded pill hover with full press / keyboard-focus states; scroll shrink now uses hysteresis | §5 |
 | Assets | Carousel portraits re-cut as transparent WebP (2.5 MB of PNGs → 136 KB); hero split into WebP layers | §3 |
 
@@ -54,7 +54,8 @@ css/
 js/
   main.js         # All interactivity + animations (init* functions)
 public/
-  assets/         # Images, SVGs (served from /assets/... at runtime)
+  assets/         # Images + SVGs (served from /assets/... at runtime)
+    videos/       # CTA band background loops (MP4 + WebM) — see §12
 ```
 
 - `public/` is Vite's static dir, so files there are referenced with an
@@ -152,6 +153,23 @@ result there means the parallax will be invisible again.
   `background-image` scoped to the reduced-motion media query). `cta-mobile`
   was recompressed PNG→JPEG (928 KB → 140 KB). The old per-person `cta-1/2/3.png`
   are unused legacy art (safe to delete).
+
+### 3d. Committed but unreferenced assets
+
+Nothing in the page loads these — they're kept, not wired up. Listed so you
+don't go hunting for the code that uses them:
+
+| File(s) | Size | Note |
+| --- | --- | --- |
+| `hero-base.png` | 12.2 MB | Superseded by the two WebP hero layers (§3a). |
+| `hero.png` | 6.1 MB | **Keep** — the regeneration source for those layers. |
+| `footer-partner-{devmountain,jwmi,sei,sophia,strayer}.svg`, `footer-partners-strip.png` | ~46 KB | The footer renders `footer-logos-strip.png` instead. Individual logos are here if that strip is ever split up. |
+| `footer-arrow-{next,prev}.svg` | ~0 KB | Empty files. |
+| `cta-1/2/3.png` | ~2.2 MB | Legacy, see above. |
+
+Everything except `hero.png` is safe to delete; that's ~14.8 MB of the repo's
+~47 MB of assets. Left in place because a few are plausible future art rather
+than clearly dead.
 
 ---
 
@@ -457,37 +475,31 @@ All live in `main.js`, initialized on `DOMContentLoaded`. Every one is
   `margin-bottom: -0.12em` so the clip mask has room for descenders without
   shifting layout. Keep this if you change heading line-heights.
 
-### Carousel card reveal details / gotchas
-- The `.carousel-reveal` class sits on **`.carousel__card`** (the whole card),
-  not the individual text elements — the card slides in from the right + fades
-  as one unit (content rides along, no per-element stagger).
-- **It animates with the `translate` property, not `transform`.** This is
-  deliberate: the carousel **track** uses `transform: translateX()` for
-  navigation, so a `transform`-based card reveal would clobber it. `translate`
-  is a separate property (the alumni portrait already uses `scale:` the same
-  way), so the card's `translate: 56px 0 → 0` composes with the track's
-  transform instead of fighting it.
-- Driven from `initCarousel()` (not the page-wide `initRevealAnimations()`): a
-  one-shot IntersectionObserver on `.carousel__viewport` reveals the active card
-  on first scroll-in (`carouselSeen`), and `goTo()` re-runs `revealSlide()` on
-  every real navigation (dot/swipe/arrow — the `animate=false` init/resize calls
-  are skipped). `revealSlide()` resets with `transition: none` before re-adding
-  `is-visible` so a revisited card doesn't animate *out* while it slides in.
-- **Cards start at `opacity: 0`, so a stuck reveal = an invisible card.** A
-  safety `setTimeout` (2.5s) in `initCarousel()` reveals the active card even if
-  the observer never fires. Keep it — it's the guard against a blank card.
-- **Inner text stagger is CSS-only, keyed off `.carousel__card.is-visible`** (no
-  per-element classes) — title/body/attribution/button. Because those elements
-  have their own transitions, `revealSlide()` resets THEM too (via `TEXT_SEL`),
-  not just the card, so a revisited slide doesn't animate its text *out* first.
-  If you add a new text element to a card, add its selector to `TEXT_SEL` and
-  the CSS reveal group, or it won't reset cleanly on slide change.
-- Reduced motion: a `@media (prefers-reduced-motion: reduce)` block forces
-  `.carousel-reveal` visible (opacity 1, no translate/transition); JS sets
-  `carouselSeen = true` and skips observing. **Per-slide IntersectionObserver is
-  not used** for the reveal — off-screen slides are clipped by the viewport's
-  `overflow: hidden`, so the slide-change hook is what makes non-active cards
-  animate when you reach them.
+### Carousel card motion details / gotchas
+- **All of the card's motion comes from `initCardScroll()`**, which writes an
+  inline `translate` every scroll frame. `.carousel-reveal` itself is only
+  `will-change: translate` — there is **no** opacity fade, no CSS transition and
+  no reduced-motion block on it, because there is nothing timed to disable.
+- **It animates the `translate` property, not `transform`.** Deliberate: the
+  carousel **track** uses `transform: translateX()` for navigation, so a
+  `transform`-based card animation would clobber it. `translate` is a separate
+  property, so the card's offset composes with the track's transform instead of
+  fighting it. The card starts at `translate: 45% 0` (`START_OFFSET`) and scrubs
+  to `0`.
+- **The slide-in is ratcheted.** `initCardScroll` keeps a `revealed` value that
+  only ever moves toward 0, so scrolling back up never pushes the cards out
+  again.
+- Reduced motion: `initCardScroll()` returns early, so no inline `translate` is
+  ever written and the cards simply sit where they're laid out.
+- ⚠️ **The `is-visible` reveal path is now vestigial.** `revealSlide()`, the
+  one-shot IntersectionObserver on `.carousel__viewport` (`carouselSeen`), the
+  2.5s safety `setTimeout`, and `goTo()`'s call into `revealSlide()` all still
+  run, but **no CSS reads `.carousel__card.is-visible` any more** — the only
+  `.is-visible` rules left are `.reveal.is-visible` and
+  `.reveal-text.is-visible .word__inner`, neither of which matches a card. That
+  machinery existed to drive the per-element text stagger, which was removed. It
+  is harmless but dead: either wire new hover/reveal CSS to it or delete it —
+  don't assume it is doing something.
 
 ### Parallax details / gotchas
 - The bg image has built-in **vertical overshoot** (`height: 116%; top: -8%`),
