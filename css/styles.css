@@ -530,26 +530,10 @@ button {
     transform var(--duration-med) var(--ease-out-expo);
 }
 
-.glass-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  width: 60%;
-  background: linear-gradient(
-    100deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.35) 50%,
-    transparent 100%
-  );
-  transform: translateX(-180%) skewX(-20deg);
-  transition: transform 0.7s var(--ease-out-expo);
-  pointer-events: none;
-  z-index: 1;
-}
-
-.glass-card:hover::before {
-  transform: translateX(280%) skewX(-20deg);
-}
+/* The diagonal "shine" sweep that used to run across `.glass-card::before` on
+   hover was removed by request: the card's hover is now a solid white fill
+   (Figma 2001:635), which the white sheen was invisible against anyway. The
+   hover scale on `.stats-section__program` is deliberately kept. */
 
 .glass-card:hover {
   background: var(--glass-bg-hover);
@@ -574,10 +558,6 @@ button {
   .glass-tile__image,
   .glass-card {
     transition: none;
-  }
-
-  .glass-card::before {
-    display: none;
   }
 }
 
@@ -1470,6 +1450,13 @@ button {
   text-decoration: underline;
 }
 
+/* Fact-sheet link goes BOLD on hover; it is already underlined at rest
+   (Figma 2001:615). */
+.stats-section__source a:hover,
+.stats-section__source a:focus-visible {
+  font-weight: 700;
+}
+
 .stats-section__right {
   display: flex;
   flex-direction: column;
@@ -1513,6 +1500,27 @@ button {
   transform: scale(1.02);
 }
 
+/* Hover flips the glass card to a SOLID WHITE fill with grey text and a red
+   arrow (Figma 2001:635). Two classes so it outranks `.glass-card:hover`,
+   which would otherwise keep its translucent white wash. */
+.stats-section__program.glass-card:hover {
+  background: var(--color-white);
+  border-color: var(--color-white);
+}
+
+.stats-section__program:hover .stats-section__degree {
+  color: var(--color-program-hover-eyebrow);
+}
+
+.stats-section__program:hover .stats-section__program-name {
+  color: var(--color-program-hover-name);
+}
+
+/* The arrow is `stroke="currentColor"`, so colouring it is enough. */
+.stats-section__program:hover .icon-arrow {
+  color: var(--color-uni-red);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .stats-section__program:hover {
     transform: none;
@@ -1536,6 +1544,21 @@ button {
   /* Right-aligned, flush with the program cards (Figma: button x242 in the
      573-wide column). */
   align-self: flex-end;
+  transition:
+    background var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease;
+}
+
+/* Inverts on hover: red fill → transparent with a 2px white ring, white text
+   (Figma 2001:671). Scoped to this CTA on purpose — `.program-finder__cta` is
+   the same `.btn--primary` and is NOT part of this spec. */
+.stats-section__cta:hover,
+.stats-section__cta:focus-visible {
+  opacity: 1;
+  background: transparent;
+  color: var(--color-white);
+  box-shadow: inset 0 0 0 2px var(--color-white);
 }
 
 /* Tiles — glass quicklinks */

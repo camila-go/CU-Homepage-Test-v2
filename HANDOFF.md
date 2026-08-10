@@ -264,6 +264,28 @@ implement it:
   This is the **inverse** of the original implementation (which was outlined at
   rest and filled on hover) — don't "fix" it back.
 
+### Stats section hover states
+
+Specced in
+[UI Elements `2001:548`](https://www.figma.com/design/mqSJTp9qWvsAU8n08FFlk9/UI-Elements-for-Homepage-Proto--Copy-?node-id=2001-548):
+
+| Element | Rest | Hover |
+| --- | --- | --- |
+| `.stats-section__program` | dark glass card | **solid white fill**, eyebrow `#767676`, name `#505050`, arrow `--color-uni-red` |
+| `.stats-section__cta` ("See all Capella programs") | red fill, white text | **inverts**: transparent + 2px white ring |
+| `.stats-section__source a` (fact sheet) | underlined | **bold**, still underlined |
+
+- The card rule is `.stats-section__program.glass-card:hover` — **two classes on
+  purpose**, so it outranks `.glass-card:hover`, which would otherwise keep its
+  translucent white wash and defeat the solid fill.
+- The arrow is `stroke="currentColor"`, so setting `color` recolours it.
+- **The CTA inversion is scoped to `.stats-section__cta`, not `.btn--primary`.**
+  `.program-finder__cta` is the same variant and is *not* part of this spec —
+  don't promote the rule to the variant.
+- `.glass-card`'s diagonal shine sweep was **removed** (it was invisible against
+  the new white fill). `.glass-card` is used only by these four cards, so the
+  `::before` rules were deleted outright rather than scoped.
+
 ⚠️ **Rings are inset `box-shadow`s, and the chip's rest border is a transparent
 2px, both for the same reason:** the element must not change size between
 states. A real 0→2px border makes buttons resize and the whole chip row jiggle
@@ -407,8 +429,7 @@ All live in `main.js`, initialized on `DOMContentLoaded`. Every one is
 | `initHeroParallax()` | Subtle parallax on the hero's **red wall only** (`.hero__bg-red`) — the people layer never moves. Driven off `window.scrollY` so it responds from the first scroll pixel; drifts the wall down up to 70px. See §3a + §5. | `scroll`/`resize`, throttled with `requestAnimationFrame` |
 | `initContentParallax()` | Drifts `.hero__content` and `.program-finder` up as you scroll, layering them over the hero art. **Driven off `window.scrollY` (factor 0.2, capped 120px), NOT off each element's `getBoundingClientRect().top`** — a viewport-relative formula is already non-zero for anything on screen at load, which shoved the hero headline ~100px above its laid-out position and put the CTA over the faces. Must read 0 at `scrollY === 0`. | `scroll`/`resize`, throttled with `requestAnimationFrame` |
 | Hero wall Ken Burns | CSS-only ambient zoom+pan on `.hero__bg-red` only (`@keyframes hero-wall-drift`, 13s alternate) — plays on its own (no scroll), people stay still. Zoom only grows past the base so no edge is exposed. Disabled under reduced-motion. | autoplay |
-| Card hover scale | CSS-only `transform: scale(1.02)` on `.stats-section__program:hover` (replaced the removed VanillaTilt 3D tilt — it caused a "jiggle"). Disabled under reduced-motion. | hover |
-| Glass shine | CSS-only diagonal sheen sweep on `.glass-card:hover` (`::before`). | hover |
+| Card hover scale | CSS-only `transform: scale(1.02)` on `.stats-section__program:hover` (replaced the removed VanillaTilt 3D tilt — it caused a "jiggle"). Kept deliberately, on top of the card's white hover fill. Disabled under reduced-motion. | hover |
 
 > **Removed:** `initTilt()` / VanillaTilt. The cursor-following 3D tilt on the
 > popular-program cards read as a jiggle and was replaced by the CSS hover scale

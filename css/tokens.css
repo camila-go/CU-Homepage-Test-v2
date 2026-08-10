@@ -16,6 +16,9 @@
   /* Program-finder chips, sampled from the UI Elements Figma (node 2001:335) */
   --color-chip-rest: #4f4f4f;
   --color-chip-hover-border: #8e8e8e;
+  /* Text on the stats program card's white hover state (node 2001:635) */
+  --color-program-hover-eyebrow: #767676;
+  --color-program-hover-name: #505050;
 
   /* Figma display: Acumin Pro Extra Condensed (maps to Acumin VF styles in dev mode) */
   --font-display: 'acumin-pro-extra-condensed', sans-serif;
