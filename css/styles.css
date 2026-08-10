@@ -182,9 +182,64 @@ button {
   outline-offset: var(--nav-focus-offset);
 }
 
+/* Dark pill → OUTLINE on hover: fill drops away leaving a 2px white ring and
+   white text. Inset box-shadow, not a border, so the size doesn't change.
+   Only used by the action-CTA's "Get started". */
 .btn--dark {
   background: var(--color-uni-black);
   color: var(--color-white);
+  transition:
+    background var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease;
+}
+
+.btn--dark:hover,
+.btn--dark:focus-visible {
+  opacity: 1;
+  background: transparent;
+  color: var(--color-white);
+  box-shadow: inset 0 0 0 2px var(--color-white);
+}
+
+.btn--dark:active {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--color-white);
+  box-shadow: inset 0 0 0 2px var(--color-white);
+}
+
+.btn--dark:focus-visible {
+  outline: var(--nav-focus-ring);
+  outline-offset: var(--nav-focus-offset);
+}
+
+/* Red pill → WHITE fill with red text on hover (same inversion as the utility
+   bar's Request information). Applies to BOTH `.btn--primary` buttons — the
+   stats "See all Capella programs" and the program finder's "Explore my
+   program" — so the red button behaves consistently. */
+.btn--primary {
+  transition:
+    background var(--duration-fast) ease,
+    color var(--duration-fast) ease;
+}
+
+.btn--primary:hover,
+.btn--primary:focus-visible {
+  opacity: 1;
+  background: var(--color-white);
+  color: var(--color-uni-red);
+}
+
+.btn--primary:active {
+  opacity: 1;
+  background: var(--color-boulder-50);
+  color: var(--color-uni-red);
+}
+
+.btn--primary:focus-visible {
+  outline: var(--nav-focus-ring);
+  outline-offset: var(--nav-focus-offset);
 }
 
 /* White buttons INVERT on hover — solid white fill becomes transparent with a
@@ -220,10 +275,36 @@ button {
   outline-offset: var(--nav-focus-offset);
 }
 
+/* Outline pill → fills WHITE on hover, text flips dark. The 2px border already
+   exists at rest, so nothing resizes. Only used by "See all accreditations". */
 .btn--outline {
   background: transparent;
   color: var(--color-white);
   border: 2px solid var(--color-white);
+  transition:
+    background var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+
+.btn--outline:hover,
+.btn--outline:focus-visible {
+  opacity: 1;
+  background: var(--color-white);
+  border-color: var(--color-white);
+  color: var(--color-uni-black);
+}
+
+.btn--outline:active {
+  opacity: 1;
+  background: var(--color-boulder-50);
+  border-color: var(--color-boulder-50);
+  color: var(--color-uni-black);
+}
+
+.btn--outline:focus-visible {
+  outline: var(--nav-focus-ring);
+  outline-offset: var(--nav-focus-offset);
 }
 
 .badge {
@@ -1544,22 +1625,11 @@ button {
   /* Right-aligned, flush with the program cards (Figma: button x242 in the
      573-wide column). */
   align-self: flex-end;
-  transition:
-    background var(--duration-fast) ease,
-    color var(--duration-fast) ease,
-    box-shadow var(--duration-fast) ease;
 }
 
-/* Inverts on hover: red fill → transparent with a 2px white ring, white text
-   (Figma 2001:671). Scoped to this CTA on purpose — `.program-finder__cta` is
-   the same `.btn--primary` and is NOT part of this spec. */
-.stats-section__cta:hover,
-.stats-section__cta:focus-visible {
-  opacity: 1;
-  background: transparent;
-  color: var(--color-white);
-  box-shadow: inset 0 0 0 2px var(--color-white);
-}
+/* NOTE: this button's hover (red → white fill, red text) now lives on
+   `.btn--primary` so both red buttons match. It replaced an earlier
+   stats-only rule that inverted to a transparent white ring. */
 
 /* Tiles — glass quicklinks */
 .tiles-section {

@@ -252,6 +252,16 @@ implement it:
 - **`.btn--secondary`** (the two carousel card buttons): the same move
   dark-on-light — solid black → transparent with a 2px black ring and black
   text, since these sit on the card's light grey panel.
+- **`.btn--dark`** (action-CTA *Get started*): dark pill → transparent with a
+  2px white ring.
+- **`.btn--outline`** (*See all accreditations*): the reverse — the outline
+  **fills white** and the text flips dark. Its 2px border exists at rest, so
+  nothing resizes.
+- **`.btn--primary`** (both red buttons — stats *See all Capella programs* and
+  the program finder's *Explore my program*): red fill → **white fill with red
+  text**, matching the utility bar's *Request information*. This is on the
+  variant, so both red buttons behave the same; it replaced an earlier
+  stats-only rule that inverted to a transparent white ring.
 - **`.chip`** (program finder,
   [`2001:335`](https://www.figma.com/design/mqSJTp9qWvsAU8n08FFlk9/UI-Elements-for-Homepage-Proto--Copy-?node-id=2001-335)):
 
@@ -272,16 +282,16 @@ Specced in
 | Element | Rest | Hover |
 | --- | --- | --- |
 | `.stats-section__program` | dark glass card | **solid white fill**, eyebrow `#767676`, name `#505050`, arrow `--color-uni-red` |
-| `.stats-section__cta` ("See all Capella programs") | red fill, white text | **inverts**: transparent + 2px white ring |
+| `.stats-section__cta` ("See all Capella programs") | red fill, white text | **white fill, red text** — now on `.btn--primary`, see above |
 | `.stats-section__source a` (fact sheet) | underlined | **bold**, still underlined |
 
 - The card rule is `.stats-section__program.glass-card:hover` — **two classes on
   purpose**, so it outranks `.glass-card:hover`, which would otherwise keep its
   translucent white wash and defeat the solid fill.
 - The arrow is `stroke="currentColor"`, so setting `color` recolours it.
-- **The CTA inversion is scoped to `.stats-section__cta`, not `.btn--primary`.**
-  `.program-finder__cta` is the same variant and is *not* part of this spec —
-  don't promote the rule to the variant.
+- The CTA's hover was later moved **onto `.btn--primary`** by request, so it and
+  the program finder's red button match. There is no stats-specific rule for it
+  any more.
 - `.glass-card`'s diagonal shine sweep was **removed** (it was invisible against
   the new white fill). `.glass-card` is used only by these four cards, so the
   `::before` rules were deleted outright rather than scoped.
