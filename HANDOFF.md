@@ -370,6 +370,14 @@ heads on wide viewports. If you ever reintroduce one, re-check head-cropping at
       `-41`, faculty `-28`). There are no crop slots, scales or
       `object-position` tricks any more — if you find yourself adding one, the
       asset is probably the wrong size. See §3 for the asset contract.
+    - ⚠️ **The phone mockup is the exception — do NOT re-derive its `left` and
+      `width` from the Figma render.** `.carousel__image--mockup` inside it is
+      positioned in *percentages of the mockup box*, so resizing that box
+      rescales the phone within its crop and drags the phone's visible top edge
+      down, silently killing the overhang. Only `top` and the bottom
+      `clip-path` should change when the card's height changes. Also note
+      `top` positions the **box**, whose top sits ~78px above the phone's
+      visible top: `-119` is what puts the phone 41px above the card.
     - **The faculty attribution needs an explicit `width`.** Its children are
       absolutely positioned, so without it they inherit the wrapper's
       shrink-to-fit width (the name) and the two-line role wraps into a narrow

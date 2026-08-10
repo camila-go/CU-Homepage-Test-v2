@@ -2321,19 +2321,28 @@ button {
     right: calc(48 * var(--px));
   }
 
+  /* ⚠️ `left` and `width` here are the ORIGINAL crop and must not be "corrected"
+     from measurements of the Figma render. `.carousel__image--mockup` inside is
+     positioned in PERCENTAGES of this box, so resizing the box rescales the
+     phone within the crop and drags its top edge down — which silently kills
+     the overhang. Only `top` and the bottom `clip-path` should ever change when
+     the card's height changes. */
   .carousel__mockup {
     position: absolute;
-    left: calc(168 * var(--px));
-    /* Figma: the phone's highest point sits 41px above the card's top edge. */
-    top: calc(-41 * var(--px));
-    width: calc(434 * var(--px));
+    left: 5.833%;
+    width: 39.306%;
+    /* -119, not -41: this positions the BOX, and the phone's visible top sits
+       ~78px below the box's top because of the crop offset on the image inside.
+       -119 puts the phone's actual top edge 41px above the card, per Figma.
+       It's the original -77 shifted by the 42px inset the card used to have
+       above its panel (the card and panel are now the same 600px box). */
+    top: calc(-119 * var(--px));
     height: auto;
     aspect-ratio: 566 / 1039;
     margin: 0;
     overflow: visible;
-    /* Clipped flush at the card's bottom edge (434*1039/566 = 797 tall, and the
-       card bottom sits 641 below the phone's top). */
-    clip-path: inset(0 0 calc(156 * var(--px)) 0);
+    /* 1039 tall, 320 of which falls past the card's bottom edge. */
+    clip-path: inset(0 0 calc(320 * var(--px)) 0);
     filter: drop-shadow(0 24px 48px rgba(0, 0, 0, 0.18));
   }
 
