@@ -211,20 +211,43 @@ new stacking contexts below 100.
 ### Nav interaction states
 
 Every interactive element in the header has hover / press / keyboard-focus
-feedback, built from four tokens in `tokens.css` (`--nav-pill-hover`,
-`--nav-pill-active`, `--nav-focus-ring`, `--nav-pill-radius`) so they stay
-consistent — change the token, not the individual rules.
+feedback, built from tokens in `tokens.css` (`--nav-pill-*`, `--nav-focus-ring`)
+so they stay consistent — change the token, not the individual rules.
 
-- **Links get a rounded pill on hover** (main nav, utility bar, mobile panel),
-  a stronger fill plus a slight scale-down on `:active`, and a white
-  `:focus-visible` ring. The logo and hamburger have their own equivalents.
+Specced in the **UI Elements** Figma
+([utility bar `2001:2`](https://www.figma.com/design/mqSJTp9qWvsAU8n08FFlk9/UI-Elements-for-Homepage-Proto--Copy-?node-id=2001-2),
+[global nav `2001:78`](https://www.figma.com/design/mqSJTp9qWvsAU8n08FFlk9/UI-Elements-for-Homepage-Proto--Copy-?node-id=2001-78)).
+⚠️ **The two bars behave differently — don't unify them:**
+
+| Element | Rest | Hover |
+| --- | --- | --- |
+| Utility links (phone, Log in) | plain | **underline** — *not* a pill |
+| Request information | red fill, white text | **inverts**: white fill, `#c10016` text |
+| Main nav links | plain | **rounded pill**, 48px tall, white @ 10% |
+| Apply now | white fill, dark text | **inverts**: transparent + 2px white ring, white text |
+
+- The main-nav pill is `48px` tall (Figma `gl-size-4xl`) — that's `12px` of
+  block padding on a 24px line, not the padding you'd guess from the text.
+- Its fill is white at **10%**, sampled from the Figma (the pill renders
+  `#373b39` over the `#212322` bar).
+- **Apply now's ring is an inset `box-shadow`, not a `border`** — a real border
+  would change the button's size on hover and shift the whole bar. Its rule
+  also resets `.btn:hover`'s `opacity`, which would otherwise just dim the
+  outline once the fill is gone.
+- Press adds a stronger fill plus a slight scale-down; `:focus-visible` is a
+  white ring everywhere. The logo and hamburger have their own equivalents.
 - ⚠️ **The pill's padding replaces the list gap — don't "restore" the gap.**
   `.main-nav__links` went from `gap: 30px` to `gap: 2px` when the links took on
-  `padding: 8px 14px`, which keeps text-to-text spacing at the same 30px
+  their own inline padding, which keeps text-to-text spacing at the same 30px
   *without widening the bar*. Adding the gap back overflows the bar at ~1025px.
   The same trick is in the utility bar: `.utility-bar__inner`'s `padding-left`
   is `5px` (not the Figma's 15px) because the links now carry 10px of their own,
   so the **text** still starts at 15px.
+- **Inline pill padding is fluid** (`clamp(12px, 1.2vw, 24px)`) on purpose. The
+  design's roomy ~26px only fits on a 1440-wide nav; this page's nav is
+  narrower (the page gutter caps the container at 1080 on a 1440 viewport), and
+  a fixed value overflows at ~1025px — the tightest width where the links are
+  still shown rather than the hamburger.
 - `.main-nav__links a` is `inline-flex` on purpose: `transform` is ignored on
   inline non-replaced boxes, so the press state would silently do nothing.
 - The mobile hamburger is a bare icon at rest but keeps `border-radius: 50%`,

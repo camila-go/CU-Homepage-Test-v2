@@ -66,10 +66,15 @@
   );
 
   /* Nav interaction states. The nav sits on near-black, so hover/press read as
-     progressively stronger white washes, and focus is a plain white ring. */
+     progressively stronger white washes, and focus is a plain white ring.
+     The hover wash is sampled from the UI Elements Figma (node 2001:125): the
+     pill renders #373b39 over the #212322 bar, i.e. white at ~10%. */
   --nav-pill-radius: 100px;
-  --nav-pill-hover: rgba(255, 255, 255, 0.12);
-  --nav-pill-active: rgba(255, 255, 255, 0.22);
+  --nav-pill-hover: rgba(255, 255, 255, 0.1);
+  --nav-pill-active: rgba(255, 255, 255, 0.2);
+  /* Figma pill is 48px tall (gl-size-4xl) — 12px of padding on a 24px line. */
+  --nav-pill-pad-y: 12px;
+  --nav-pill-pad-x: clamp(12px, 1.2vw, 24px);
   --nav-focus-ring: 2px solid var(--color-white);
   --nav-focus-offset: 2px;
 

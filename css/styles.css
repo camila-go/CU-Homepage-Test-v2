@@ -573,39 +573,41 @@ button {
   height: 100%;
 }
 
-/* Nav interaction states — see the "pill hover" block further down for the
-   shared tokens. Links get a rounded pill on hover, a slightly stronger fill +
-   press-in on :active, and a white focus ring for keyboard users. */
+/* Utility bar states, per the UI Elements Figma (node 2001:2): the links
+   UNDERLINE on hover — they do NOT take the rounded pill that the main nav
+   links use. The padding is kept purely for a comfortable hit area. */
 .utility-bar__link {
   display: inline-flex;
   align-items: center;
   padding: 4px 10px;
-  border-radius: var(--nav-pill-radius);
   font-size: var(--text-body-sm);
   font-weight: 400;
   line-height: 1.5;
   color: var(--color-white);
-  transition:
-    background var(--duration-fast) ease,
-    transform var(--duration-fast) ease;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: opacity var(--duration-fast) ease;
 }
 
-.utility-bar__link:hover {
-  background: var(--nav-pill-hover);
+.utility-bar__link:hover,
+.utility-bar__link:focus-visible {
+  text-decoration: underline;
 }
 
 .utility-bar__link:active {
-  background: var(--nav-pill-active);
-  transform: scale(0.97);
+  text-decoration: underline;
+  opacity: 0.75;
 }
 
 .utility-bar__link:focus-visible {
   outline: var(--nav-focus-ring);
   outline-offset: var(--nav-focus-offset);
+  border-radius: var(--nav-pill-radius);
 }
 
 /* The CTA is a full-height block that bleeds to the bar's right edge, so it
-   keeps its square shape — only its fill and press state change. */
+   keeps its square shape. On hover it INVERTS to white with red text
+   (Figma 8:613/8:614) rather than just darkening. */
 .utility-bar__cta {
   display: flex;
   align-items: center;
@@ -619,16 +621,18 @@ button {
   line-height: 1.5;
   transition:
     background var(--duration-fast) ease,
-    transform var(--duration-fast) ease;
+    color var(--duration-fast) ease;
 }
 
-.utility-bar__cta:hover {
-  background: #a80013;
+.utility-bar__cta:hover,
+.utility-bar__cta:focus-visible {
+  background: var(--color-white);
+  color: var(--color-uni-red);
 }
 
 .utility-bar__cta:active {
-  background: #8f0010;
-  transform: scale(0.985);
+  background: var(--color-boulder-50);
+  color: var(--color-uni-red);
 }
 
 .utility-bar__cta:focus-visible {
@@ -716,7 +720,11 @@ button {
      non-replaced boxes. */
   display: inline-flex;
   align-items: center;
-  padding: 8px 14px;
+  /* 12px block padding on a 24px line = the Figma's 48px pill (gl-size-4xl).
+     Inline padding is fluid: the design's generous ~26px only fits on a wide
+     nav, and a fixed value overflows the bar at ~1025px, where the links are
+     still shown. */
+  padding: var(--nav-pill-pad-y) var(--nav-pill-pad-x);
   border-radius: var(--nav-pill-radius);
   font-size: var(--text-body);
   font-weight: 500;
@@ -745,10 +753,35 @@ button {
   flex-shrink: 0;
 }
 
-/* .btn only ships a hover (opacity); give the nav's buttons a press state and a
-   keyboard ring too. Scoped to the nav so site-wide buttons are untouched. */
+/* Apply now inverts on hover: solid white → transparent with a 2px white ring
+   and white text (Figma node 2001:170). The ring is an inset box-shadow rather
+   than a real border so the button doesn't change size and shift the bar.
+   `.btn:hover`'s opacity is cancelled here — with the fill gone it would just
+   dim the outline. */
+.main-nav__apply,
+.main-nav__mobile-apply {
+  transition:
+    background var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease,
+    transform var(--duration-fast) ease;
+}
+
+.main-nav__apply:hover,
+.main-nav__apply:focus-visible,
+.main-nav__mobile-apply:hover,
+.main-nav__mobile-apply:focus-visible {
+  opacity: 1;
+  background: transparent;
+  color: var(--color-white);
+  box-shadow: inset 0 0 0 2px var(--color-white);
+}
+
 .main-nav__apply:active,
 .main-nav__mobile-apply:active {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--color-white);
+  box-shadow: inset 0 0 0 2px var(--color-white);
   transform: scale(0.97);
 }
 
@@ -756,13 +789,6 @@ button {
 .main-nav__mobile-apply:focus-visible {
   outline: var(--nav-focus-ring);
   outline-offset: var(--nav-focus-offset);
-}
-
-.main-nav__apply,
-.main-nav__mobile-apply {
-  transition:
-    opacity var(--duration-fast) ease,
-    transform var(--duration-fast) ease;
 }
 
 /* The logo is a link: it needs a visible focus ring and a light hover cue. */
