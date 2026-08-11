@@ -81,12 +81,10 @@ before replacing them:
   — the homepage overall.
 - [Figma — Card Update](https://www.figma.com/design/vkdlGCLzDrSK1crS3ZtT5A/Card-Update?node-id=6-194)
   — the featured-story cards (v2 rebuilt these against this file).
-- [Figma — UI Elements for Homepage Proto (Copy)](https://www.figma.com/design/mqSJTp9qWvsAU8n08FFlk9/UI-Elements-for-Homepage-Proto--Copy-?node-id=2013-19398)
-  — nav dropdown, button and chip states, the closing CTA, and the mobile bottom
-  bar / chat launcher.
 - **Jake's page updates** —
-  [Figma — UI Elements for Homepage Proto](https://www.figma.com/design/h3IvZdQj2uH5bm7JPUD89a/UI-Elements-for-Homepage-Proto?node-id=50-21184).
-  Also the source for the nav's activated state.
+  [Figma — UI Elements for Homepage Proto](https://www.figma.com/design/h3IvZdQj2uH5bm7JPUD89a/UI-Elements-for-Homepage-Proto?node-id=50-21184)
+  — the nav dropdown and its activated state, button and chip states, the closing
+  CTA, and the mobile bottom bar / chat launcher.
 
 ## Browser notes
 
