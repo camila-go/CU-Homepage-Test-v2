@@ -2482,6 +2482,14 @@ button {
   }
 }
 
+/* Phones get the portrait poster — the landscape one would be cropped hard by
+   `cover` in a 375 × 687 box. Still only fetched by reduced-motion users. */
+@media (prefers-reduced-motion: reduce) and (max-width: 768px) {
+  .action-cta__panels {
+    background-image: url("/assets/videos/cta-tvspot-portrait-poster.webp");
+  }
+}
+
 /* The scrim is an ellipse anchored to the bottom centre, not a linear wash —
    Figma 2008:19347 is a radial gradient rgba(0,0,0,0.86) → transparent with
    radii 701 × 365 on the 1440 × 750 frame (both ≈48.7%), centred at 50% 100%. */

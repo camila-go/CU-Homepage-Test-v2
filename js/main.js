@@ -1152,25 +1152,43 @@ function initCtaVideos() {
   const videos = [...section.querySelectorAll('.action-cta__video')];
   if (!videos.length || prefersReducedMotion) return;
 
-  // Phones get the 960-wide encode (~2.2MB vs ~5.3MB). Done in JS rather than
-  // `media` attributes on <source>, which not every browser honours — getting
-  // that wrong would serve the small file to desktops. Safe to rewrite the srcs
-  // here because `preload="none"` means nothing has been requested yet.
-  if (window.matchMedia('(max-width: 768px)').matches) {
+  // Three encodes, picked by viewport:
+  //   ≤768   portrait 374x686 (1.5MB) — the section is portrait here, so this is
+  //          a purpose-shot crop, not the landscape master squeezed by `cover`
+  //   ≤1024  landscape 960-wide (2.2MB) — still landscape, but a big viewport's
+  //          worth of pixels is wasted on a tablet
+  //   else   landscape 1440 master (5.3MB)
+  //
+  // Done in JS rather than `media` on <source>, which not every browser honours —
+  // getting that wrong would serve the smallest file to desktops. Safe to rewrite
+  // srcs here because `preload="none"` means nothing has been requested yet.
+  const tier = window.matchMedia('(max-width: 768px)').matches
+    ? 'Portrait'
+    : window.matchMedia('(max-width: 1024px)').matches
+      ? 'Sm'
+      : null;
+
+  if (tier) {
     videos.forEach((video) => {
-      const { srcWebmSm, srcMp4Sm, typeMp4Sm } = video.dataset;
-      if (!srcWebmSm && !srcMp4Sm) return;
+      const webm = video.dataset[`srcWebm${tier}`];
+      const mp4 = video.dataset[`srcMp4${tier}`];
+      const mp4Type = video.dataset[`typeMp4${tier}`];
+      if (!webm && !mp4) return;
       video.querySelectorAll('source').forEach((source) => {
         // startsWith, not ===: the types carry codec strings.
         if (source.type.startsWith('video/webm')) {
-          if (srcWebmSm) source.src = srcWebmSm;
-        } else if (srcMp4Sm) {
-          source.src = srcMp4Sm;
-          // The small encode is a lower H.264 level, so its codec string
-          // differs — leaving the 1440 one here would misdeclare it.
-          if (typeMp4Sm) source.type = typeMp4Sm;
+          if (webm) source.src = webm;
+        } else if (mp4) {
+          source.src = mp4;
+          // Each encode is a different H.264 level, so the codec string differs —
+          // leaving the 1440 one here would misdeclare the file.
+          if (mp4Type) source.type = mp4Type;
         }
       });
+      // The portrait clip needs its own poster; the landscape one would letterbox.
+      if (tier === 'Portrait' && video.dataset.posterPortrait) {
+        video.poster = video.dataset.posterPortrait;
+      }
       video.load();
     });
   }
