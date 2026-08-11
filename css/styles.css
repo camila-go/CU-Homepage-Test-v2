@@ -2451,8 +2451,15 @@ button {
 }
 
 /* Action CTA */
+/* Capped at --max-content, not full-bleed. The homepage design insets this
+   section to 1440 inside a 1920 canvas (240px either side), and the CTA frame
+   itself is 1440 × 750. `min()` keeps it edge-to-edge up to 1440 — which is
+   what the 1440 and 375 frames both show — and only starts centring beyond
+   that, instead of stretching across an ultrawide display. */
 .action-cta {
   position: relative;
+  width: min(var(--max-content), 100%);
+  margin-inline: auto;
   min-height: 750px;
   overflow: hidden;
 }
