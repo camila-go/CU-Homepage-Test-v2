@@ -1472,26 +1472,14 @@ button {
   transform: scale(1.5);
   transform-origin: center center;
   will-change: transform;
-  /* Ambient "Ken Burns" drift on the wall — plays on its own (no scroll
-     needed) so there's always visible, elegant motion behind the static
-     people. The scroll parallax (initHeroParallax) rides on top via the
-     separate `translate` property, so the two never fight. Zoom only ever
-     grows past the base 1.5, so the layer can't expose an edge. */
-  animation: hero-wall-drift 13s ease-in-out infinite alternate;
-}
-
-@keyframes hero-wall-drift {
-  from {
-    transform: scale(1.5) translate(0, 0);
-  }
-  to {
-    transform: scale(1.68) translate(1.6%, 1.8%);
-  }
+  /* No ambient drift. There used to be a 13s "Ken Burns" zoom/pan looping here
+     with no scroll needed; it read as the wall quietly moving on its own. The
+     scroll parallax (initHeroParallax, via the separate `translate` property)
+     is the only motion on this layer now. */
 }
 
 @media (prefers-reduced-motion: reduce) {
   .hero__bg-red {
-    animation: none;
     transform: scale(1.05);
   }
 }

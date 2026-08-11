@@ -15,7 +15,7 @@ What changed from v1, and where the details are:
 | Area | Change | §  |
 | --- | --- | --- |
 | Featured-story cards | Rebuilt to the **Card Update** Figma (`1440 × 600`, new copy and people, Figma-variable type scale, portraits that break out above the card) | §3, §6 |
-| Hero | Two-layer red-wall parallax + ambient drift; `initContentParallax` rewritten to be scroll-keyed so the headline no longer rides up over the faces | §3a, §7 |
+| Hero | Two-layer red-wall parallax; `initContentParallax` rewritten to be scroll-keyed so the headline no longer rides up over the faces | §3a, §7 |
 | Carousel motion | Scroll-driven, ratcheted card slide-in (the card's text does not animate) | §7 |
 | Nav | Rounded pill hover with full press / keyboard-focus states; scroll shrink now uses hysteresis | §5 |
 | Assets | Carousel portraits re-cut as transparent WebP (2.5 MB of PNGs → 136 KB); hero split into WebP layers | §3 |
@@ -506,9 +506,8 @@ All live in `main.js`, initialized on `DOMContentLoaded`. Every one is
 | `initCardScroll()` | **Scroll-driven** (scrubbed, not timed) slide-in for the carousel cards: their `translate` tracks the carousel's position in the viewport, spread over ~90% of a viewport height so it's slow. **Ratcheted** — it only ever moves toward settled, so scrolling back up never pushes the cards out again. | `scroll`/`resize`, throttled with `requestAnimationFrame` |
 | `initCountUp()` | Animates the stats numbers (40 / 80 / 1,530+ / 63%) counting up with a custom cubic-bezier ease. Preserves prefixes/suffixes/grouping. | IntersectionObserver (threshold 0.4) |
 | `initParallax()` | Translates the content-band background image on scroll for depth. | `scroll`/`resize`, throttled with `requestAnimationFrame` |
-| `initHeroParallax()` | Subtle parallax on the hero's **red wall only** (`.hero__bg-red`) — the people layer never moves. Driven off `window.scrollY` so it responds from the first scroll pixel; drifts the wall down up to 70px. See §3a + §5. | `scroll`/`resize`, throttled with `requestAnimationFrame` |
+| `initHeroParallax()` | The ONLY motion on the hero's red wall (a 13s ambient Ken Burns zoom/pan was removed — it read as the wall moving on its own). Parallax on the **red wall only** (`.hero__bg-red`) — the people layer never moves. Driven off `window.scrollY` so it responds from the first scroll pixel; drifts the wall down up to 70px. See §3a + §5. | `scroll`/`resize`, throttled with `requestAnimationFrame` |
 | `initContentParallax()` | Floats `.hero__content` (factor **0.6**) and `.program-finder` (0.2) up as you scroll, layering them over the hero art. **Driven off `window.scrollY`, NOT off each element's `getBoundingClientRect().top`** — a viewport-relative formula is already non-zero for anything on screen at load, which shoved the hero headline ~100px above its laid-out position and put the CTA over the faces. Must read 0 at `scrollY === 0`. The hero's travel is capped at its own `offsetTop - 16` because `.hero` is `overflow: hidden`: the mobile hero only leaves ~117px of room before the headline would clip, versus ~170 on desktop. Don't replace that with a fixed cap. | `scroll`/`resize`, throttled with `requestAnimationFrame` |
-| Hero wall Ken Burns | CSS-only ambient zoom+pan on `.hero__bg-red` only (`@keyframes hero-wall-drift`, 13s alternate) — plays on its own (no scroll), people stay still. Zoom only grows past the base so no edge is exposed. Disabled under reduced-motion. | autoplay |
 | Card hover scale | CSS-only `transform: scale(1.02)` on `.stats-section__program:hover` (replaced the removed VanillaTilt 3D tilt — it caused a "jiggle"). Kept deliberately, on top of the card's white hover fill. Disabled under reduced-motion. | hover |
 
 > **Removed:** `initTilt()` / VanillaTilt. The cursor-following 3D tilt on the
