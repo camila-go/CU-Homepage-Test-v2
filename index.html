@@ -45,8 +45,12 @@
     <link rel="stylesheet" href="https://use.typekit.net/rrn6owv.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- ⚠️ `1,700` is required, not optional: the carousel pull-quote is Inter
+         Bold Italic. Without that tuple the only italic face loaded is 400, so
+         `font-weight: 700` silently falls back to it and the quote renders
+         regular-weight no matter what the CSS says. -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/styles.css" />
