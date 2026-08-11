@@ -845,11 +845,10 @@ function initMegaMenu() {
           if (p) p.hidden = !on;
         });
       };
+      // ⚠️ Click ONLY — deliberately no `mouseenter`. Hover-to-select meant
+      // simply moving the pointer across the rail toward the areas column
+      // swapped the panel out from under you. The live site requires a click.
       tab.addEventListener('click', select);
-      // Pointer-only: matches the real site, where sliding down the rail
-      // previews each level without a click. Not on focus, or keyboard
-      // arrowing through the rail would fight the roving selection.
-      tab.addEventListener('mouseenter', select);
     });
   });
 
@@ -912,7 +911,6 @@ function initMegaMenu() {
   // you just left.
   document.querySelectorAll('.megamenu__level').forEach((tab) => {
     tab.addEventListener('click', clearPrograms);
-    tab.addEventListener('mouseenter', clearPrograms);
   });
 
   // Dismissal: click outside, or Escape (which returns focus to the trigger).

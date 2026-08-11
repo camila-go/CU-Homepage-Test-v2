@@ -2250,7 +2250,12 @@ button {
   max-width: none;
   object-fit: cover;
   opacity: 0.7;
-  transition: opacity var(--duration-med) ease;
+  /* Hover zoom. Originally `--duration-slow` (0.7s), which read as a sluggish
+     creep and got pulled; back at `--duration-med` so the move still registers
+     without dragging. */
+  transition:
+    transform var(--duration-med) var(--ease-out-expo),
+    opacity var(--duration-med) ease;
 }
 
 .glass-tile__scrim {
@@ -2294,6 +2299,7 @@ button {
 .glass-tile:hover .glass-tile__image,
 .glass-tile:focus-visible .glass-tile__image {
   opacity: 0.9;
+  transform: scale(1.05);
 }
 
 .glass-tile:hover .glass-tile__glass,
