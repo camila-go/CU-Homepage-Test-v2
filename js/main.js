@@ -802,11 +802,22 @@ function initMegaMenu() {
     // same height regardless of which trigger you used.
     panel.style.top = `${barRect.bottom - navRect.top}px`;
 
-    // The wide menu starts at the bar's left edge; the narrow ones sit under
-    // their own trigger.
-    const anchor = panel.classList.contains('megamenu--split')
-      ? barRect.left
-      : trigger.getBoundingClientRect().left;
+    // The wide menu starts at the bar's left edge; the narrow ones are CENTRED
+    // under their trigger. The trigger's padding is symmetric, so its box
+    // centre is the label's centre.
+    let anchor;
+    if (panel.classList.contains('megamenu--split')) {
+      anchor = barRect.left;
+    } else {
+      const triggerRect = trigger.getBoundingClientRect();
+      // offsetWidth is readable here because open() unhides the panel before
+      // calling this.
+      const panelWidth = panel.offsetWidth;
+      anchor = triggerRect.left + triggerRect.width / 2 - panelWidth / 2;
+      // Clamp to the viewport — Admissions sits far enough right that centring
+      // alone would hang the panel off the edge on narrower desktops.
+      anchor = Math.min(Math.max(anchor, 0), window.innerWidth - panelWidth);
+    }
     panel.style.left = `${anchor - navRect.left}px`;
   }
 
