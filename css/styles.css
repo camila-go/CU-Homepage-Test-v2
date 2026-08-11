@@ -3722,6 +3722,15 @@ button {
    z-index: the bar sits at 120 — above the page but BELOW the mobile menu panel
    (130), so opening the menu covers it and its own red footer takes over rather
    than the two stacking. The chat button rides just above the bar at 121. */
+/* Figma 2013:19398. One centred row with a literal pipe — NOT two 50/50 halves
+   split by a border, which is what this was before.
+
+   ⚠️ Height is 60px, not the 100px the Figma frame measures. That frame includes
+   iOS Safari's bottom toolbar (the "capella.edu" pill), which the browser draws
+   and tints red via our `theme-color`. Building a flat 100px bar would leave
+   ~40px of empty red on Android, where there is no bottom chrome. 60px puts the
+   CTA row where the design has it and lets the browser's own toolbar complete
+   the block on iOS. */
 .action-bar {
   display: none;
   position: fixed;
@@ -3729,36 +3738,42 @@ button {
   bottom: 0;
   left: 0;
   z-index: 120;
-  height: 50px;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  height: 60px;
   background: var(--color-uni-red);
 }
 
 .action-bar__link {
-  flex: 1 1 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 8px;
   color: var(--color-white);
   font-size: var(--text-body);
-  line-height: 1.5;
+  font-weight: 600;
+  line-height: 0.9;
+  letter-spacing: -0.16px;
   text-align: center;
-  transition: background var(--duration-fast) ease;
+  transition: opacity var(--duration-fast) ease;
 }
 
-.action-bar__link + .action-bar__link {
-  border-left: 1px solid rgba(255, 255, 255, 0.5);
+.action-bar__divider {
+  color: var(--color-white);
+  font-size: var(--text-body);
+  font-weight: 600;
+  line-height: 0.9;
+  opacity: 0.6;
 }
 
 .action-bar__link:hover {
-  background: rgba(0, 0, 0, 0.12);
+  opacity: 0.75;
 }
 
 .action-bar__link:focus-visible {
   outline: 2px solid var(--color-white);
-  outline-offset: -4px;
+  outline-offset: 4px;
 }
 
+/* 54px solid circle, no ring — the updated design (Figma 2013:19395) drops the
+   white outline the earlier prod screenshot had. */
 .chat-button {
   position: fixed;
   right: 30px;
@@ -3767,10 +3782,10 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
+  width: 54px;
+  height: 54px;
   padding: 0;
-  border: 2px solid rgba(255, 255, 255, 0.4);
+  border: 0;
   border-radius: 50%;
   background: var(--color-uni-red);
   color: var(--color-white);
@@ -3832,11 +3847,13 @@ button {
     display: flex;
   }
 
+  /* 60px bar + the design's 16px gap; 17px from the right edge per Figma. */
   .chat-button {
-    bottom: calc(50px + 16px);
+    right: 17px;
+    bottom: calc(60px + 16px);
   }
 
   .footer {
-    padding-bottom: 140px;
+    padding-bottom: 150px;
   }
 }

@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Capella University</title>
 
+    <!-- iOS Safari tints its bottom toolbar to match this. The bottom-bar design
+         (Figma 2013:19398) shows that toolbar rendered in Capella red sitting
+         directly under our action bar — that tint is what produces it, and
+         without it the browser chrome stays grey and breaks the red block. -->
+    <meta name="theme-color" content="#c10016" />
+
     <!-- Description and social tags use Capella's own published wording from
          capella.edu — no new marketing copy was written for this. -->
     <meta
@@ -1008,6 +1014,10 @@
          put while the page scrolls. -->
     <nav class="action-bar" aria-label="Quick actions">
       <a href="#" class="action-bar__link">Apply now</a>
+      <!-- The design draws a literal pipe between the two, not a border on the
+           halves. Kept as its own element so it stays out of the accessible
+           name of either link. -->
+      <span class="action-bar__divider" aria-hidden="true">|</span>
       <a href="#" class="action-bar__link">Request info</a>
     </nav>
 
