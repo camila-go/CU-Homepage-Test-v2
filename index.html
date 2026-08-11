@@ -1013,12 +1013,18 @@
          hamburger breakpoint only. Page-level (not part of the nav), so it stays
          put while the page scrolls. -->
     <nav class="action-bar" aria-label="Quick actions">
-      <a href="#" class="action-bar__link">Apply now</a>
-      <!-- The design draws a literal pipe between the two, not a border on the
-           halves. Kept as its own element so it stays out of the accessible
-           name of either link. -->
-      <span class="action-bar__divider" aria-hidden="true">|</span>
-      <a href="#" class="action-bar__link">Request info</a>
+      <div class="action-bar__row">
+        <a href="#" class="action-bar__link">Apply now</a>
+        <!-- The design draws a literal pipe between the two, not a border on the
+             halves. Kept as its own element so it stays out of the accessible
+             name of either link. -->
+        <span class="action-bar__divider" aria-hidden="true">|</span>
+        <a href="#" class="action-bar__link">Request info</a>
+      </div>
+      <!-- Decorative URL chip from the design (Figma 2013:19392). Purely visual —
+           `aria-hidden` because it is not a control and the address adds nothing
+           for a screen-reader user already on the page. -->
+      <span class="action-bar__url" aria-hidden="true">capella.edu</span>
     </nav>
 
     <!-- Chat launcher, all breakpoints. No chat backend in the prototype, so
