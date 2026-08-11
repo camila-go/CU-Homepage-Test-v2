@@ -3704,3 +3704,131 @@ button {
    noticeably SMALLER than the design. What actually looked broken on mobile was
    initContentParallax displacing `.hero__content` upward at rest (see §7); with
    that fixed, cover needs no help. */
+
+/* --- Mobile action bar + chat launcher ------------------------------------
+   Both are page-level fixed elements, matching the live site. The bar mirrors
+   `.ctanav-chat-bar` (50px, uni-red, two equal halves split by a hairline);
+   the chat button mirrors `#embeddedMessagingConversationButton` (56px circle,
+   uni-red, 30px from the right edge).
+
+   z-index: the bar sits at 120 — above the page but BELOW the mobile menu panel
+   (130), so opening the menu covers it and its own red footer takes over rather
+   than the two stacking. The chat button rides just above the bar at 121. */
+.action-bar {
+  display: none;
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 120;
+  height: 50px;
+  background: var(--color-uni-red);
+}
+
+.action-bar__link {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  color: var(--color-white);
+  font-size: var(--text-body);
+  line-height: 1.5;
+  text-align: center;
+  transition: background var(--duration-fast) ease;
+}
+
+.action-bar__link + .action-bar__link {
+  border-left: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.action-bar__link:hover {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.action-bar__link:focus-visible {
+  outline: 2px solid var(--color-white);
+  outline-offset: -4px;
+}
+
+.chat-button {
+  position: fixed;
+  right: 30px;
+  bottom: 30px;
+  z-index: 121;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  background: var(--color-uni-red);
+  color: var(--color-white);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+  transition:
+    background var(--duration-fast) ease,
+    transform var(--duration-fast) ease;
+}
+
+.chat-button__label {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.chat-button:hover {
+  background: #a30013;
+}
+
+.chat-button:active {
+  transform: scale(0.95);
+}
+
+.chat-button:focus-visible {
+  outline: 2px solid var(--color-white);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-button {
+    transition: none;
+  }
+
+  .chat-button:active {
+    transform: none;
+  }
+}
+
+/* ⚠️ The footer's bottom padding must clear the chat button, not just the action
+   bar. The chat button is fixed to the VIEWPORT, so at the end of the page it
+   lands on whatever the footer's last row is — and that row is the partner
+   carousel, whose "Next brands" arrow sits at the content's right edge. Until
+   ~1250px the two collide and the arrow becomes unclickable, because the button
+   paints on top. 30 + 56 = 86px of button, so 104 leaves a real gap. */
+.footer {
+  padding-bottom: 104px;
+}
+
+/* Below the hamburger breakpoint the bar appears, and everything that would sit
+   underneath it gets out of the way: the chat button lifts above the bar, and
+   the footer clears both (66 + 56 = 122px of button, so 140). */
+@media (max-width: 1024px) {
+  .action-bar {
+    display: flex;
+  }
+
+  .chat-button {
+    bottom: calc(50px + 16px);
+  }
+
+  .footer {
+    padding-bottom: 140px;
+  }
+}

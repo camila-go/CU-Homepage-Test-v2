@@ -4,7 +4,9 @@ Engineering notes for anyone picking up this build. Covers the toolchain, the
 animation system, responsive behavior, accessibility, asset handling, and the
 edge cases / gotchas that aren't obvious from the code alone.
 
-> See also: [`README.md`](README.md) for the quick-start.
+> See also: [`README.md`](README.md) for the quick-start, and
+> [`DEBUGGING.md`](DEBUGGING.md) for symptom-first troubleshooting — start there
+> when something *looks* broken; this file explains how things are *built*.
 
 **This is the second version of the homepage**, living at
 [`camila-go/CU-Homepage-Test-v2`](https://github.com/camila-go/CU-Homepage-Test-v2).

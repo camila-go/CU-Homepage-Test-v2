@@ -880,6 +880,20 @@
       </div>
     </footer>
 
+    <!-- Mobile action bar — the live site's `.ctanav-chat-bar`, shown below the
+         hamburger breakpoint only. Page-level (not part of the nav), so it stays
+         put while the page scrolls. -->
+    <nav class="action-bar" aria-label="Quick actions">
+      <a href="#" class="action-bar__link">Apply now</a>
+      <a href="#" class="action-bar__link">Request info</a>
+    </nav>
+
+    <!-- Chat launcher, all breakpoints. No chat backend in the prototype, so
+         this is a button with no handler rather than a link that would jump. -->
+    <button type="button" class="chat-button" aria-label="Hello, have a question? Let's chat.">
+      <span class="chat-button__label" aria-hidden="true">Chat<br />now</span>
+    </button>
+
     <script type="module" src="js/main.js"></script>
   </body>
 </html>

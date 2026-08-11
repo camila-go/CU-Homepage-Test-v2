@@ -6,7 +6,9 @@ the dev server and bundler.
 
 This is the **second version** of the homepage. See
 [`HANDOFF.md`](HANDOFF.md) for what changed from v1 and for the engineering
-detail behind everything below.
+detail behind everything below, and [`DEBUGGING.md`](DEBUGGING.md) when
+something looks broken — it is a symptom-first runbook covering the traps this
+codebase has already hit.
 
 ## Getting started
 
