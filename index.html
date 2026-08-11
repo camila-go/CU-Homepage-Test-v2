@@ -4,6 +4,38 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Capella University</title>
+
+    <!-- Description and social tags use Capella's own published wording from
+         capella.edu — no new marketing copy was written for this. -->
+    <meta
+      name="description"
+      content="Capella University is an accredited online university offering PhD, professional doctorate, master&apos;s and bachelor&apos;s programs for adults seeking to advance their career."
+    />
+
+    <!-- ⚠️ Canonical points at the LIVE homepage on purpose: this is a
+         prototype, and a self-referencing canonical would let a test
+         deployment compete with capella.edu for the same query. If this ever
+         becomes the production homepage, change it to its own URL. -->
+    <link rel="canonical" href="https://www.capella.edu/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Capella University" />
+    <meta property="og:title" content="Capella University" />
+    <meta
+      property="og:description"
+      content="Capella University is an accredited online university offering PhD, professional doctorate, master&apos;s and bachelor&apos;s programs for adults seeking to advance their career."
+    />
+    <meta property="og:url" content="https://www.capella.edu/" />
+    <!-- ⚠️ Must become an absolute URL on the deployed host — several social
+         crawlers will not resolve a root-relative og:image. -->
+    <meta property="og:image" content="/assets/hero-people.webp" />
+    <meta property="og:image:alt" content="Capella University learners" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Capella University" />
+    <meta
+      name="twitter:description"
+      content="Capella University is an accredited online university offering PhD, professional doctorate, master&apos;s and bachelor&apos;s programs for adults seeking to advance their career."
+    />
     <link rel="stylesheet" href="https://use.typekit.net/rrn6owv.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -15,6 +47,86 @@
     <link rel="preload" as="image" href="/assets/hero-people.webp" fetchpriority="high" />
     <link rel="preload" as="image" href="/assets/hero-red.webp" />
     <script src="https://kit.fontawesome.com/f1bee60eab.js" crossorigin="anonymous"></script>
+
+    <!-- Structured data. Mirrors the entity Capella already publishes on
+         capella.edu — same `@id`s, so answer engines resolve this page to the
+         SAME organization node rather than treating the prototype as a second,
+         competing entity. Every value here is copied from that published graph;
+         nothing is invented. Keep it in sync if the live entity changes. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "CollegeOrUniversity",
+            "@id": "https://www.capella.edu/#organization",
+            "name": "Capella University",
+            "alternateName": "Capella",
+            "url": "https://www.capella.edu/",
+            "description": "Capella University is an online university offering flexible degree programs for working adults.",
+            "logo": {
+              "@type": "ImageObject",
+              "@id": "https://www.capella.edu/#logo",
+              "url": "https://www.capella.edu/content/dam/capella/logos/capella_logo_horizontal_RGB_448x95.svg"
+            },
+            "telephone": "+1-888-227-3552",
+            "email": "admissions@capella.edu",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Capella Tower, 225 South 6th Street, 9th Floor",
+              "addressLocality": "Minneapolis",
+              "addressRegion": "MN",
+              "postalCode": "55402",
+              "addressCountry": "US"
+            },
+            "contactPoint": [
+              {
+                "@type": "ContactPoint",
+                "contactType": "Admissions",
+                "telephone": "+1-888-227-3552",
+                "email": "admissions@capella.edu",
+                "areaServed": "US",
+                "availableLanguage": ["English"]
+              }
+            ],
+            "knowsAbout": [
+              "Online Higher Education",
+              "Adult Learning",
+              "Business",
+              "Nursing",
+              "Psychology",
+              "Education",
+              "Information Technology",
+              "Counseling",
+              "Social Work"
+            ],
+            "sameAs": [
+              "https://www.facebook.com/CapellaUniversity",
+              "https://www.linkedin.com/school/capella-university/",
+              "https://twitter.com/CapellaU",
+              "https://www.youtube.com/user/CapellaUniversity"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://www.capella.edu/#website",
+            "name": "Capella University",
+            "url": "https://www.capella.edu/",
+            "publisher": { "@id": "https://www.capella.edu/#organization" }
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://www.capella.edu/#webpage",
+            "url": "https://www.capella.edu/",
+            "name": "Capella University",
+            "description": "Capella University is an accredited online university offering PhD, professional doctorate, master's and bachelor's programs for adults seeking to advance their career.",
+            "inLanguage": "en-US",
+            "isPartOf": { "@id": "https://www.capella.edu/#website" },
+            "about": { "@id": "https://www.capella.edu/#organization" }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div class="utility-bar">
@@ -674,11 +786,18 @@
 
       <section class="accreditation" aria-labelledby="accreditation-heading">
         <div class="accreditation__inner page-container">
-          <div class="accreditation__logos" aria-hidden="true">
-            <img src="/assets/accr-acbsp.svg" alt="" class="accreditation__logo accreditation__logo--acbsp logo-img" loading="lazy" decoding="async" />
-            <img src="/assets/accr-cacrep.svg" alt="" class="accreditation__logo accreditation__logo--cacrep logo-img" loading="lazy" decoding="async" />
-            <img src="/assets/accr-ccne.png" alt="" class="accreditation__logo accreditation__logo--ccne logo-img" loading="lazy" decoding="async" />
-            <img src="/assets/accr-cswe.png" alt="" class="accreditation__logo accreditation__logo--cswe logo-img" loading="lazy" decoding="async" />
+          <!-- ⚠️ Not `aria-hidden`, and not `alt=""`. These four marks are the
+               only place ACBSP and CACREP appear anywhere on the page — the body
+               copy names the Higher Learning Commission, CCNE and CSWE, but not
+               those two. Hiding them cost screen-reader users and answer engines
+               two accreditations, which are among the strongest trust signals a
+               university has. Alt text names the accreditor; it adds no visible
+               copy. -->
+          <div class="accreditation__logos">
+            <img src="/assets/accr-acbsp.svg" alt="Accredited by the Accreditation Council for Business Schools and Programs (ACBSP)" class="accreditation__logo accreditation__logo--acbsp logo-img" loading="lazy" decoding="async" />
+            <img src="/assets/accr-cacrep.svg" alt="Accredited by the Council for Accreditation of Counseling and Related Educational Programs (CACREP)" class="accreditation__logo accreditation__logo--cacrep logo-img" loading="lazy" decoding="async" />
+            <img src="/assets/accr-ccne.png" alt="Accredited by the Commission on Collegiate Nursing Education (CCNE)" class="accreditation__logo accreditation__logo--ccne logo-img" loading="lazy" decoding="async" />
+            <img src="/assets/accr-cswe.png" alt="Accredited by the Council on Social Work Education (CSWE)" class="accreditation__logo accreditation__logo--cswe logo-img" loading="lazy" decoding="async" />
           </div>
           <div class="accreditation__content">
             <h2 id="accreditation-heading" class="accreditation__title heading-h5">
