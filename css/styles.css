@@ -2554,7 +2554,8 @@ button {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 16px;
+  /* Separates the wordmark from the social row. */
+  gap: 24px;
   flex-shrink: 0;
   width: 194px;
 }
@@ -3733,10 +3734,11 @@ button {
    z-index: the bar sits at 120 — above the page but BELOW the mobile menu panel
    (130), so opening the menu covers it and its own red footer takes over rather
    than the two stacking. The chat button rides just above the bar at 121. */
-/* Figma 2013:19398, built to the frame's measurements: 100px tall, the CTA row
-   22px from the top, and the capella.edu chip 62px down (158 × 23, radius 60).
-   One centred row with a literal pipe — NOT two 50/50 halves split by a border,
-   which is what this was before. */
+/* Figma 2013:19398, minus the capella.edu chip that frame showed below the CTA.
+   With the chip gone the bar collapses to a single centred row — the 100px
+   height only existed to seat the chip, and keeping it would have left ~60px of
+   empty red under the labels. One row with a literal pipe, NOT two 50/50 halves
+   split by a border. */
 .action-bar {
   display: none;
   position: fixed;
@@ -3744,18 +3746,11 @@ button {
   bottom: 0;
   left: 0;
   z-index: 120;
-  flex-direction: column;
   align-items: center;
-  gap: 26px; /* 22 + 14.4 line + 26 puts the chip's top at 62px */
-  height: 100px;
-  padding-top: 22px;
-  background: var(--color-uni-red);
-}
-
-.action-bar__row {
-  display: flex;
-  align-items: center;
+  justify-content: center;
   gap: 20px;
+  height: 60px;
+  background: var(--color-uni-red);
 }
 
 .action-bar__link {
@@ -3774,21 +3769,6 @@ button {
   font-weight: 600;
   line-height: 0.9;
   opacity: 0.6;
-}
-
-.action-bar__url {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 158px;
-  height: 23px;
-  border-radius: 60px;
-  background: rgba(255, 97, 115, 0.74);
-  color: var(--color-white);
-  font-size: var(--text-body-sm);
-  font-weight: 500;
-  line-height: 0.9;
-  letter-spacing: -0.14px;
 }
 
 .action-bar__link:hover {
@@ -3875,14 +3855,14 @@ button {
     display: flex;
   }
 
-  /* 100px bar + the design's 15px gap; 17px from the right edge per Figma. */
+  /* 60px bar + the design's 15px gap; 17px from the right edge per Figma. */
   .chat-button {
     right: 17px;
-    bottom: calc(100px + 15px);
+    bottom: calc(60px + 15px);
   }
 
-  /* Must clear the launcher, which now tops out at 115 + 54 = 169px. */
+  /* Must clear the launcher, which tops out at 75 + 54 = 129px. */
   .footer {
-    padding-bottom: 190px;
+    padding-bottom: 150px;
   }
 }
