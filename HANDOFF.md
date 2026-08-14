@@ -665,58 +665,39 @@ browsers:
 
 ---
 
-## 12. CTA background video
+## 12. CTA background videos
 
-The closing "what are you waiting for?" section plays a single full-bleed
-TV-spot clip (Figma UI Elements `2008:19373`). It replaced an earlier three-clip
-strip.
+The closing "what are you waiting for?" section plays three looping clips
+(left lady / middle man / right lady) on the gold backdrop. A single full-bleed
+TV-spot clip replaced these for a while and was then reverted; its encodes are
+still in `public/assets/videos/` (`cta-tvspot*`, ~15 MB) but are **unreferenced**
+— keep them if the single-clip treatment might come back, otherwise delete.
 
-- **Files** (all in `public/assets/videos/`, encoded from a 1440×750 / 45s /
-  24fps / silent 84 MB master):
-
-  | file | size | serves |
-  | --- | --- | --- |
-  | `cta-tvspot.webm` | 4.5 MB | > 1024px — VP9 CRF 36, tried first |
-  | `cta-tvspot.mp4` | 5.3 MB | > 1024px — H.264 CRF 28, Safari fallback |
-  | `cta-tvspot-sm.webm` | 2.1 MB | 769–1024px — 960-wide VP9 CRF 40 |
-  | `cta-tvspot-sm.mp4` | 2.3 MB | 769–1024px — 960-wide H.264 CRF 30 |
-  | `cta-tvspot-portrait.webm` | 1.5 MB | ≤ 768px — 374×686 VP9 CRF 40 |
-  | `cta-tvspot-portrait.mp4` | 1.5 MB | ≤ 768px — 374×686 H.264 CRF 30 |
-  | `cta-tvspot-poster.jpg` | 79 KB | landscape poster + reduced-motion still |
-  | `cta-tvspot-portrait-poster.webp` | 10 KB | portrait poster + reduced-motion still |
-
-  The portrait pair is a separately shot 374×686 crop (the Figma mobile frame),
-  not the landscape master squeezed by `object-fit`. Its aspect ratio is 0.545
-  against the container's 0.546, so `cover` trims essentially nothing.
-
-  Audio is stripped (`-an`) — the master is silent and an audio track would only
-  add bytes. `+faststart` puts the moov atom first so playback can begin while
-  the file is still streaming.
-- **Source order:** WebM first, MP4 second — the browser takes WebM where
-  supported (Chrome/Firefox/Edge) and falls back to MP4 (Safari).
+- **Files:** `public/assets/videos/{leftLady,middleMan,rightLady}_loop.{webm,mp4}`.
+  Each clip starts and ends on the empty stool so `loop` is seamless (no jump
+  cut). Each `<video>` lists **WebM first, MP4 second** — the browser picks WebM
+  where supported and falls back to MP4 (older Safari).
 - **Autoplay-as-background:** `muted` + `playsinline` + `loop` (required for
   autoplay, incl. iOS). There is **no `autoplay` attribute** — see lazy-load.
 - **Lazy-load (`initCtaVideos()`):** `preload="none"` plus an
   IntersectionObserver that calls `play()` only when the section is within
-  ~200px of the viewport and `pause()`s when it leaves. Nothing is fetched on
-  initial load — the section is far below the fold.
-- **⚠️ The variant is chosen in JS, not `media` attributes.** `initCtaVideos()`
-  picks a tier — portrait ≤768, `-sm` ≤1024, master above — rewrites the
-  `<source>` srcs (and the mp4's codec string, which differs per encode), swaps
-  the poster on the portrait tier, then calls `load()`. This is safe because
-  `preload="none"` means nothing has been requested yet. `media` on `<source>`
-  is *not* reliably honoured for `<video>`; if a browser ignored it, the small
-  file would be served to desktops instead.
-- **Placeholder:** the `poster` paints instantly, over a
-  `.action-cta__video { background: #6f7472 }` so there's no black flash.
-- **Reduced motion:** `initCtaVideos()` bails, so `play()` is never called and
-  `preload="none"` means the video bytes are never fetched. The poster frame is
-  the fallback image, set as a `background-image` scoped to the media query.
-- **Layout:** full-bleed 1440×750 on desktop; on phones the section takes the
-  design's 375×687 portrait ratio and plays the dedicated portrait encode.
-- **Re-encoding:** there is no `ffmpeg` on this machine by default;
-  `pip install --user imageio-ffmpeg` provides a static binary at
-  `~/Library/Python/3.9/lib/python/site-packages/imageio_ffmpeg/binaries/`.
+  ~200px of the viewport, and `pause()`s when it leaves. Hidden panels are
+  skipped via `offsetParent === null`, so on phones only the first clip is ever
+  fetched — verified: one request for `leftLady_loop.webm`, none for the others.
+- **Layout:** 3-up grid on desktop; on phones (`≤768px`) only the **first** clip
+  shows full-bleed (`nth-child(n+2)` hidden) at the design's 375 × 687 ratio —
+  three strips would be far too narrow at that width.
+- **Width:** the section is capped at `--max-content` (1440) rather than
+  full-bleed, so it centres on wider displays.
+- **Placeholder:** `.action-cta__video { background: #d5a461 }` (sampled from the
+  gold backdrop) avoids a black flash before the first frame paints.
+- **Reduced motion:** `initCtaVideos()` bails and the CSS hides the videos,
+  showing `cta-people.png` (desktop) / `cta-mobile.jpg` (mobile) as a
+  `background-image` scoped to the media query — so those images are only
+  fetched by reduced-motion users.
+- **If you swap the clips:** keep the seamless empty-stool loop point, re-export
+  both WebM + MP4, and keep them small (right lady is the heaviest at ~1.4 MB
+  WebM). There is no ffmpeg on this machine by default — see DEBUGGING.md.
 
 ## 13. Footer partner carousel
 
