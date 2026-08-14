@@ -1898,7 +1898,11 @@ button {
   font-family: var(--font-display);
   font-weight: var(--weight-display-black);
   font-style: italic;
-  font-size: clamp(1.75rem, 7.4vw, var(--text-display));
+  /* 2.25rem floor = 36px on phones. Raising the clamp's minimum rather than
+     adding a breakpoint override keeps the size fluid — 7.4vw only overtakes
+     36px around 486px wide, so it stays exactly 36 across phone widths and then
+     grows smoothly. */
+  font-size: clamp(2.25rem, 7.4vw, var(--text-display));
   line-height: 0.9;
   letter-spacing: normal;
   text-transform: uppercase;
