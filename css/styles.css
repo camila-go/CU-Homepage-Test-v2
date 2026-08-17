@@ -1832,24 +1832,28 @@ button {
   object-position: top center;
 }
 
+/* WNBA partnership card: a single flattened lockup (logos + rule + the
+   "official higher learning partner" line) rather than composed layers, because
+   that is how the brand asset is licensed and how the design places it. */
+.carousel__lockup {
+  display: block;
+}
+
+.carousel__lockup img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 /* Mobile portrait scaling matches the Figma mobile cards: the portrait sits in
    a full-width, near-square (294 x 299) box anchored at the bottom of the card.
    Desktop (min-width: 1200px) overrides these with absolute positioning and
    explicit width/height, so it is unaffected. */
-.carousel__portrait--alumni,
 .carousel__portrait--faculty {
   width: 100%;
   aspect-ratio: 294 / 299;
   height: auto;
   margin: 0;
-}
-
-/* Alumni: the source asset is a tall transparent cutout (680x1024). Keep the
-   Figma box ratio (294/299) for the correct card height and use cover anchored
-   to the top so the face fills the width without distortion (no object-fit: fill). */
-.carousel__portrait--alumni .carousel__image--portrait {
-  object-fit: cover;
-  object-position: top center;
 }
 
 .carousel__content {
@@ -1864,21 +1868,9 @@ button {
   color: var(--color-black);
 }
 
-.carousel__content--alumni {
-  gap: 0;
-}
-
-.carousel__content--alumni .carousel__title {
-  margin-bottom: 24px;
-}
-
-.carousel__content--alumni .carousel__program {
-  margin-bottom: 32px;
-}
-
-/* The pull-quote (alumni + faculty cards) is Inter BOLD Italic, not regular.
+/* The pull-quote (faculty card) is Inter BOLD Italic, not regular.
    Measured off the Card Update render: 28px with a 34px line step (≈1.2) on the
-   1440 card, clearly heavier than the role/disclaimer copy beneath it. */
+   1440 card, clearly heavier than the role copy beneath it. */
 .carousel__title {
   margin: 0;
   max-width: 600px;
@@ -1945,16 +1937,6 @@ button {
   margin: 0 0 12px;
   font-size: var(--text-body);
   font-weight: 400;
-  line-height: 1.5;
-  color: var(--color-boulder-700);
-}
-
-.carousel__disclaimer {
-  margin: 0;
-  max-width: 470px;
-  font-size: var(--text-ui-sm);
-  font-weight: 400;
-  font-style: italic;
   line-height: 1.5;
   color: var(--color-boulder-700);
 }
@@ -2888,7 +2870,6 @@ button {
   }
 
   .carousel__portrait,
-  .carousel__portrait--alumni,
   .carousel__portrait--faculty {
     position: absolute;
     left: 0;
@@ -2898,35 +2879,16 @@ button {
     aspect-ratio: auto;
   }
 
-  .carousel__portrait--alumni {
-    top: calc(284 * var(--px));
-    height: calc(299 * var(--px));
-  }
-
   .carousel__portrait--faculty {
     top: calc(283 * var(--px));
     height: calc(300 * var(--px));
   }
 
-  /* cover (never fill) so the figures keep their natural proportions, anchored
+  /* cover (never fill) so the figure keeps its natural proportions, anchored
      to the bottom so the lower body always sits on the card's bottom edge. */
-  .carousel__portrait--alumni .carousel__image--portrait,
   .carousel__portrait--faculty .carousel__image--portrait {
     object-fit: cover;
     object-position: center bottom;
-  }
-
-  /* Dark gradient scrim over the bottom of the alumni image so the white
-     legal copy is legible (Figma applies a to-black gradient here). */
-  .carousel__portrait--alumni::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 45%;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.7) 100%);
-    pointer-events: none;
   }
 
   /* --- Text layers: content wrapper fills the card; each block is placed
@@ -2983,17 +2945,6 @@ button {
     color: var(--color-boulder-700);
   }
 
-  /* Disclaimer is nested inside .attribution (top:202), so offset to reach y532. */
-  .carousel__disclaimer {
-    position: absolute;
-    top: calc(330 * var(--px));
-    left: 0;
-    right: 0;
-    width: auto;
-    max-width: none;
-    color: var(--color-white);
-  }
-
   /* Floating buttons (student + faculty) are centered horizontally at y509. */
   .carousel__content .btn {
     position: absolute;
@@ -3010,6 +2961,23 @@ button {
     padding: 12px 20px;
     font-size: var(--text-body);
     margin: 0;
+  }
+
+  /* --- WNBA partnership card (Figma 31:60) --- */
+  .carousel__content--partner .carousel__lockup {
+    position: absolute;
+    left: calc(28 * var(--px));
+    top: calc(101 * var(--px));
+    width: calc(238 * var(--px));
+  }
+
+  /* This card's button is an explicit 194x48 in the design rather than hugging
+     its label. Both numbers stay unscaled, like every other mobile card button
+     here — scaling only the width would stretch the pill out of proportion as
+     the card grows on tablets. */
+  .carousel__content--partner .btn {
+    top: calc(490 * var(--px));
+    width: 194px;
   }
 }
 
@@ -3107,21 +3075,15 @@ button {
 
   /* Portraits are pre-cut transparent WebPs extracted at the exact Figma card
      scale, so they drop in 1:1 with no cropping or scaling of their own.
-     Each is TALLER than the 600px card because the person breaks out above the
-     card's top edge (41px alumni, 28px faculty) — hence the negative top and
-     the card's overflow: visible. */
+     The asset is TALLER than the 600px card because the person breaks out above
+     the card's top edge (28px) — hence the negative top and the card's
+     overflow: visible. */
   .carousel__portrait {
     position: absolute;
     left: 0;
     bottom: auto;
     margin: 0;
     overflow: visible;
-  }
-
-  .carousel__portrait--alumni {
-    top: calc(-41 * var(--px));
-    width: calc(720 * var(--px));
-    height: calc(641 * var(--px));
   }
 
   .carousel__portrait--faculty {
@@ -3139,7 +3101,7 @@ button {
 
   /* Type scale straight from the Card Update Figma variables:
      testimonial 20/1.5 italic · body 16/1.5 · t3 heading 40/0.9 condensed
-     · disclaimer 12/1.5 italic · ui-lg button 20 bold. */
+     · ui-lg button 20 bold. */
   .carousel__content {
     position: absolute;
     left: calc(758 * var(--px));
@@ -3174,58 +3136,45 @@ button {
     font-size: calc(16 * var(--px));
   }
 
-  .carousel__disclaimer {
-    font-size: calc(12 * var(--px));
-    max-width: calc(600 * var(--px));
-  }
-
-  /* Alumni content anchored to the measured Card Update Y positions (quote 184,
-     name 374, program 412, disclaimer 469) so nothing drifts from accumulated
-     line-height. The attribution wrapper sits at the name's Y; its children
-     offset from there. */
-  .carousel__content--alumni {
+  /* WNBA partnership card (Figma 55:62). Unlike the testimonial cards there is
+     no 600px text column — the lockup and the button are centred across the
+     whole 1440x600 panel, so the content layer spans the card. */
+  .carousel__content--partner {
     top: 0;
-    left: calc(758 * var(--px));
-    width: calc(600 * var(--px));
+    left: 0;
+    width: 100%;
     height: 100%;
     display: block;
     gap: 0;
   }
 
-  .carousel__content--alumni .carousel__title {
+  .carousel__content--partner > * {
     position: absolute;
-    top: calc(192 * var(--px));
-    left: 0;
-    width: calc(600 * var(--px));
+    left: 50%;
+    transform: translateX(-50%);
     margin: 0;
   }
 
-  .carousel__content--alumni .carousel__attribution {
-    position: absolute;
-    top: calc(382 * var(--px));
-    left: 0;
-    width: calc(600 * var(--px));
-    margin: 0;
+  /* The lockup's own ink sits ~21px right of centre in the Figma frame while the
+     mobile card centres it exactly (28 + 238/2 = 147 = half of 294) — so this
+     centres rather than copying the desktop frame's offset. */
+  .carousel__content--partner .carousel__lockup {
+    top: calc(77 * var(--px));
+    width: calc(992 * var(--px));
   }
 
-  .carousel__content--alumni .carousel__name {
-    margin: 0;
-  }
-
-  /* 44 = the 36px name line box (40 × 0.9) + the design's 8px auto-layout gap.
-     These offsets are absolute, so the gap has to be written into the Y rather
-     than left to a margin. */
-  .carousel__content--alumni .carousel__program {
-    position: absolute;
-    top: calc(44 * var(--px));
-    margin: 0;
-  }
-
-  .carousel__content--alumni .carousel__disclaimer {
-    position: absolute;
-    top: calc(90 * var(--px));
-    width: calc(600 * var(--px));
-    margin: 0;
+  /* 478, not the design's 450: the lockup's baked-in caption ends at y405, so
+     the Figma spacing leaves only 45px of air before the pill. Dropping the
+     button opens that to 73 and still leaves 62 below the pill, more than the
+     48 the badge uses at the top. */
+  .carousel__content--partner .btn {
+    top: calc(478 * var(--px));
+    min-width: calc(211 * var(--px));
+    min-height: calc(60 * var(--px));
+    height: calc(60 * var(--px));
+    padding: calc(16 * var(--px)) calc(28 * var(--px));
+    font-size: calc(20 * var(--px));
+    border-radius: calc(32 * var(--px));
   }
 
   /* Student card: anchor to exact Figma Y (title 184, body 348, button 440)

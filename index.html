@@ -540,29 +540,32 @@
               <article class="carousel__slide" data-slide="1">
                 <div class="carousel__card carousel-reveal">
                   <div class="carousel__panel" aria-hidden="true"></div>
-                  <span class="carousel__badge badge">Alumni stories</span>
-                  <div class="carousel__portrait carousel__portrait--alumni">
-                    <img
-                      src="/assets/carousel-portrait-alumni.webp"
-                      alt="Capella graduate Dr. Compton Moore"
-                      class="carousel__image carousel__image--portrait"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </div>
-                  <div class="carousel__content carousel__content--alumni">
-                    <h2 class="carousel__title">
-                      <span class="carousel__quote-mark" aria-hidden="true">&ldquo;</span>The most
-                      rewarding part of earning my degrees is knowing I can accomplish nearly
-                      anything I put my mind to.&rdquo;
-                    </h2>
-                    <div class="carousel__attribution">
-                      <p class="carousel__name">Dr. Compton Moore</p>
-                      <p class="carousel__program">Capella Graduate</p>
-                      <p class="carousel__disclaimer">
-                        Actual Capella alum who agreed to appear in our promotional materials.
-                      </p>
-                    </div>
+                  <span class="carousel__badge badge">Latest news</span>
+                  <div class="carousel__content carousel__content--partner">
+                    <!-- The partnership lockup ships as two artworks because the
+                         design re-flows it rather than scaling one: side-by-side
+                         with a vertical rule on desktop, stacked with a
+                         horizontal rule on mobile. `media` on the <source>
+                         matches the 1024 CSS breakpoint so only one downloads.
+                         The "official higher learning partner" line is baked
+                         into the artwork, so the alt text has to carry it. -->
+                    <picture class="carousel__lockup">
+                      <source
+                        media="(min-width: 1024px)"
+                        srcset="/assets/wnba-capella-lockup.webp"
+                        width="1984"
+                        height="815"
+                      />
+                      <img
+                        src="/assets/wnba-capella-lockup-stacked.webp"
+                        alt="WNBA and Capella University: official higher learning partner of the WNBA."
+                        width="908"
+                        height="1352"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </picture>
+                    <a href="#" class="btn btn--secondary btn--lg">Get in the game</a>
                   </div>
                 </div>
               </article>
@@ -613,7 +616,7 @@
               type="button"
               role="tab"
               aria-selected="false"
-              aria-label="Slide 2: Alumni stories"
+              aria-label="Slide 2: WNBA partnership"
               class="carousel__dot"
             ></button>
             <button

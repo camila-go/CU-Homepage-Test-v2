@@ -124,14 +124,13 @@ result there means the parallax will be invisible again.
   were bumped each time an asset on disk was replaced to defeat browser/Vite
   caching. If you replace one of these images, **bump the number**.
 - **Carousel portraits are transparent WebP, cut at the exact card scale, and
-  are TALLER than the card on purpose.** `carousel-portrait-alumni.webp`
-  (720×**641**, Dr. Compton Moore) and `carousel-portrait-faculty.webp`
-  (786×**628**, Lisa Kraeger) were extracted from the Card Update Figma render
+  are TALLER than the card on purpose.** `carousel-portrait-faculty.webp`
+  (786×**628**, Lisa Kraeger) was extracted from the Card Update Figma render
   at 1:1 with the 1440×600 card, with the panel background keyed out. The extra
-  height is the part of each person that **breaks out above the card's top
-  edge** — 41px alumni, 28px faculty — so the CSS positions them at a negative
-  `top` and the card keeps `overflow: visible`. The phone on the student slide
-  does the same (41px). Do not "fix" the overflow or re-crop these to 600.
+  height is the part of the figure that **breaks out above the card's top
+  edge** (28px), so the CSS positions it at a negative `top` and the card keeps
+  `overflow: visible`. The phone on the student slide does the same (41px). Do
+  not "fix" the overflow or re-crop these to 600.
   Because they are already card-scale, the desktop CSS drops them in at
   `left: 0` with `object-fit: fill` and **no** cropping or `object-position`
   tricks. They must stay truly transparent; a gray or black box behind a
@@ -140,10 +139,22 @@ result there means the parallax will be invisible again.
   `get_design_context`, which serves the original asset URLs, was erroring); for
   production, re-export the originals from Figma at 2× and keep the same pixel
   dimensions doubled.
+  `carousel-portrait-alumni.webp` (Dr. Compton Moore) is left in the repo but
+  **unreferenced** since the alumni testimonial became the WNBA card.
+- **The WNBA partnership lockups are flattened brand art, not composed layers.**
+  `wnba-capella-lockup.webp` (1984×815, side-by-side) and
+  `wnba-capella-lockup-stacked.webp` (908×1352) each bake in the logos, the
+  divider rule *and* the "official higher learning partner of the WNBA" line.
+  They are the Figma source images recoloured to black over transparency and
+  downscaled to 2× of their largest rendered size. The design **re-flows** the
+  lockup rather than scaling one artwork, so a `<picture>` with
+  `media="(min-width: 1024px)"` — matching the CSS breakpoint — picks one.
+  Because the caption is pixels, the `alt` text is the only place that line
+  exists for assistive tech and answer engines; keep it if you swap the asset.
 - **Asset aspect ratios are tuned to their CSS slots.** The carousel portrait
   crops rely on each asset's ratio being close to its slot ratio (so
-  `object-position: bottom` doesn't clip heads, and the alumni `object-fit: fill`
-  doesn't visibly warp). Swapping in an asset with a very different aspect ratio
+  `object-position: bottom` doesn't clip heads and `object-fit: fill` doesn't
+  visibly warp). Swapping in an asset with a very different aspect ratio
   will reintroduce warping/clipping — re-check the carousel at all breakpoints.
 - **Figma-sourced assets expire.** Original art was pulled via Figma MCP URLs
   that expire (~7 days). The committed copies in `public/assets/` are the source
@@ -443,7 +454,7 @@ heads on wide viewports. If you ever reintroduce one, re-check head-cropping at
     `1440 × 642` box with a 42px top inset is gone). `overflow: visible`, so the
     portrait figures intentionally **extend above** the card top.
     - **Content is anchored to exact Figma coordinates**, not flex gaps. Each
-      slide's content (`--student` / `--alumni` / `--faculty` modifier on
+      slide's content (`--student` / `--partner` / `--faculty` modifier on
       `.carousel__content`) absolutely positions its title / body / attribution /
       button at the Figma `y` via the `--px` unit, which avoids vertical drift
       from accumulated line-height. Measured off the Card Update render:
@@ -451,25 +462,30 @@ heads on wide viewports. If you ever reintroduce one, re-check head-cropping at
       | | title | body / attribution | button |
       |---|---|---|---|
       | student | 184 | 254 | 346 |
-      | alumni | 184 | name 374 · role 412 · disclaimer 469 | — |
+      | partner | — | lockup 77 (992 wide) | 450 |
       | faculty | 184 | name 337 · role 375 | 463 |
 
-      All three content columns start at `x 758` and are `600` wide (the student
-      body alone is `557`, which is what makes it wrap where the design does).
+      The student and faculty columns start at `x 758` and are `600` wide (the
+      student body alone is `557`, which is what makes it wrap where the design
+      does). The **partner card is the exception**: it has no text column, so
+      `--partner` spans the full 1440 and centres both children. Its lockup sits
+      ~21px right of centre in the Figma frame while the mobile card centres the
+      same art exactly (`28 + 238/2 = 147`, half of 294) — the build centres it
+      at both sizes rather than reproducing that offset.
     - **Type scale comes from the Figma file's own variables** — quote `20`
       Inter *italic* / 1.5, body `16`, name `40` Acumin Extra Condensed
-      Semibold / 0.9 uppercase, role `16`, disclaimer `12` italic, button `20`
+      Semibold / 0.9 uppercase, role `16`, button `20`
       bold. The quote is **not** the big condensed display face; if it starts
       rendering as large uppercase display type, a `.carousel__title` override
       has crept back in.
-    - **Buttons** ("Is FlexPath right for you?", "Full bio") are scaled to the
-      Figma `60px` pill (`padding 16/28`, `font 20`, `radius 32`) via `--px` —
-      do **not** let them fall back to the unscaled `.btn--lg`, which stretches
-      full-width.
+    - **Buttons** ("Is FlexPath right for you?", "Get in the game", "Full bio")
+      are scaled to the Figma `60px` pill (`padding 16/28`, `font 20`,
+      `radius 32`) via `--px` — do **not** let them fall back to the unscaled
+      `.btn--lg`, which stretches full-width.
     - **Portrait sizing.** The assets are pre-cut at exact card scale, so each
       `.carousel__portrait` is simply `left: 0` at its asset's own dimensions
-      with `object-fit: fill` and a **negative `top`** for the overhang (alumni
-      `-41`, faculty `-28`). There are no crop slots, scales or
+      with `object-fit: fill` and a **negative `top`** for the overhang (faculty
+      `-28`). There are no crop slots, scales or
       `object-position` tricks any more — if you find yourself adding one, the
       asset is probably the wrong size. See §3 for the asset contract.
     - ⚠️ **The phone mockup is the exception — do NOT re-derive its `left` and
@@ -591,8 +607,9 @@ All live in `main.js`, initialized on `DOMContentLoaded`. Every one is
 - **Things to watch / improve:**
   - Focus styles: confirm visible focus rings on all interactive elements
     (links, chips, dots, buttons) before launch — verify against brand styling.
-  - Color contrast: the carousel disclaimer / legal copy sits on imagery with a
-    gradient scrim; re-check contrast if you change the scrim opacity.
+  - Baked-in copy: the WNBA partnership lockups carry their "official higher
+    learning partner" line as pixels, so it can't be resized, translated or read
+    by a screen reader — the `alt` text is the only accessible copy of it.
   - The carousel auto-snaps on drag but has **no autoplay** (good for a11y —
     don't add autoplay without a pause control + reduced-motion handling).
   - Headings: keep a single `<h1>` (hero) and logical `<h2>`/`<h3>` order if you
