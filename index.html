@@ -841,24 +841,33 @@
 
       <section class="action-cta" aria-labelledby="action-cta-heading">
         <div class="action-cta__panels" aria-hidden="true">
-          <!-- Three seamless-loop clips (each starts and ends on the empty stool,
-               so `loop` has no jump cut) on the gold backdrop. WebM first, MP4
-               fallback; muted + playsinline so they autoplay as background video
-               everywhere (incl. iOS). `preload="none"` means nothing is fetched
-               until initCtaVideos() sees the section near the viewport, and the
-               hidden 2nd/3rd panels are skipped on mobile so they never
-               download there. -->
-          <video class="action-cta__video" loop muted playsinline preload="none">
-            <source src="/assets/videos/leftLady_loop.webm" type="video/webm" />
-            <source src="/assets/videos/leftLady_loop.mp4" type="video/mp4" />
-          </video>
-          <video class="action-cta__video" loop muted playsinline preload="none">
-            <source src="/assets/videos/middleMan_loop.webm" type="video/webm" />
-            <source src="/assets/videos/middleMan_loop.mp4" type="video/mp4" />
-          </video>
-          <video class="action-cta__video" loop muted playsinline preload="none">
-            <source src="/assets/videos/rightLady_loop.webm" type="video/webm" />
-            <source src="/assets/videos/rightLady_loop.mp4" type="video/mp4" />
+          <!-- Single full-bleed TV-spot clip. WebM first, MP4 fallback; muted +
+               playsinline so it autoplays as background video everywhere (incl.
+               iOS). `preload="none"` means not a byte is fetched until
+               initCtaVideos() sees the section approach the viewport, and that
+               same function swaps in the 960-wide `-sm` pair on phones before
+               the first fetch. The poster paints immediately either way. -->
+          <video
+            class="action-cta__video"
+            loop
+            muted
+            playsinline
+            preload="none"
+            poster="/assets/videos/cta-tvspot-poster.jpg"
+            data-poster-portrait="/assets/videos/cta-tvspot-portrait-poster.webp"
+            data-src-webm-sm="/assets/videos/cta-tvspot-sm.webm"
+            data-src-mp4-sm="/assets/videos/cta-tvspot-sm.mp4"
+            data-type-mp4-sm='video/mp4; codecs="avc1.64001F"'
+            data-src-webm-portrait="/assets/videos/cta-tvspot-portrait.webm"
+            data-src-mp4-portrait="/assets/videos/cta-tvspot-portrait.mp4"
+            data-type-mp4-portrait='video/mp4; codecs="avc1.64001F"'
+          >
+            <!-- Codec strings are exact (read out of the files' avcC boxes), so a
+                 browser that can't decode VP9 — Safari before 14.1, iOS before
+                 17.4 — skips straight to the MP4 without spending a request on
+                 the WebM. Both report "probably" from canPlayType. -->
+            <source src="/assets/videos/cta-tvspot.webm" type='video/webm; codecs="vp9"' />
+            <source src="/assets/videos/cta-tvspot.mp4" type='video/mp4; codecs="avc1.640028"' />
           </video>
         </div>
         <div class="action-cta__overlay">

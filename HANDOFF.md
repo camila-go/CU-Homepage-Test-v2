@@ -163,8 +163,9 @@ result there means the parallax will be invisible again.
   plays a single full-bleed TV-spot clip (`public/assets/videos/cta-tvspot*`)
   — see §12. The reduced-motion fallback is the clip's own poster frame, so no
   extra image is fetched. The previous three-clip set
-  (`{leftLady,middleMan,rightLady}_loop.{webm,mp4}`, ~6.4 MB) plus
-  `cta-people.png` / `cta-mobile.jpg` are now **unreferenced** — safe to delete.
+  (`{leftLady,middleMan,rightLady}_loop.{webm,mp4}`) and its `cta-people.png` /
+  `cta-mobile.jpg` stills have been **deleted** — recover from git history if
+  that treatment comes back.
 
 ### 3d. Committed but unreferenced assets
 
@@ -181,10 +182,17 @@ don't go hunting for the code that uses them:
 | `footer-logos-strip.png`, `footer-partners-strip.png` | ~46 KB | The old flat 4320×210 strip, with the arrows *painted into the image*. Superseded by the carousel; kept as the slice source for `partners/{devmountain,sophia}.png`. |
 | `footer-arrow-{next,prev}.svg` | ~0 KB | Empty files. |
 | `cta-1/2/3.png` | ~2.2 MB | Legacy, see above. |
+| `carousel-portrait-alumni.webp` | ~40 KB | Dr. Compton Moore — the alumni slide became the WNBA partnership card (§9). |
 
-Everything except `hero.png` is safe to delete; that's ~14.8 MB of the repo's
-~47 MB of assets. Left in place because a few are plausible future art rather
+Everything except `hero.png` is safe to delete; that's ~14.9 MB of the repo's
+~40 MB of assets. Left in place because a few are plausible future art rather
 than clearly dead.
+
+Already deleted, so don't go looking for them: the three gold-backdrop clips
+(`videos/{leftLady,middleMan,rightLady}_loop.{webm,mp4}`) and their
+reduced-motion stills (`cta-people.png`, `cta-mobile.jpg`), ~6.7 MB, removed
+when the closing CTA went back to the single TV-spot clip. Recover from git
+history if that treatment ever returns.
 
 ---
 
@@ -684,37 +692,46 @@ browsers:
 
 ## 12. CTA background videos
 
-The closing "what are you waiting for?" section plays three looping clips
-(left lady / middle man / right lady) on the gold backdrop. A single full-bleed
-TV-spot clip replaced these for a while and was then reverted; its encodes are
-still in `public/assets/videos/` (`cta-tvspot*`, ~15 MB) but are **unreferenced**
-— keep them if the single-clip treatment might come back, otherwise delete.
+The closing "what are you waiting for?" section plays a **single full-bleed
+TV-spot clip**. Three looping clips on a gold backdrop
+(`{leftLady,middleMan,rightLady}_loop.{webm,mp4}`) plus `cta-people.png` /
+`cta-mobile.jpg` were the treatment for a while; those eight files have been
+deleted and live only in git history now.
 
-- **Files:** `public/assets/videos/{leftLady,middleMan,rightLady}_loop.{webm,mp4}`.
-  Each clip starts and ends on the empty stool so `loop` is seamless (no jump
-  cut). Each `<video>` lists **WebM first, MP4 second** — the browser picks WebM
-  where supported and falls back to MP4 (older Safari).
+- **Files:** three encodes of the same spot, each as WebM + MP4 —
+  `cta-tvspot.{webm,mp4}` (1440 master, ~5.3 MB), `cta-tvspot-sm.{webm,mp4}`
+  (960-wide, ~2.2 MB) and `cta-tvspot-portrait.{webm,mp4}` (374 × 686, ~1.5 MB).
+  The portrait pair is a **purpose-shot crop**, not the landscape master
+  squeezed by `cover`. Each `<video>` lists **WebM first, MP4 second** — the
+  browser picks WebM where supported and falls back to MP4 (older Safari).
+- **Codec strings are exact**, read out of each file's `avcC` box
+  (`avc1.640028` for the master, `avc1.64001F` for the smaller two). That's what
+  lets a browser with no VP9 — Safari < 14.1, iOS < 17.4 — skip straight to the
+  MP4 without spending a request on the WebM. Each encode is a different H.264
+  level, so the tier swap rewrites `type` as well as `src`.
 - **Autoplay-as-background:** `muted` + `playsinline` + `loop` (required for
   autoplay, incl. iOS). There is **no `autoplay` attribute** — see lazy-load.
+- **Tier selection lives in `initCtaVideos()`, not `media` on `<source>`** —
+  not every browser honours that attribute, and getting it wrong would serve the
+  smallest file to desktops. Rewriting `src` in JS is safe because
+  `preload="none"` means nothing has been requested yet. `≤768` → portrait
+  (which also swaps in `cta-tvspot-portrait-poster.webp`; the landscape poster
+  would letterbox), `≤1024` → `-sm`, otherwise the master.
 - **Lazy-load (`initCtaVideos()`):** `preload="none"` plus an
   IntersectionObserver that calls `play()` only when the section is within
-  ~200px of the viewport, and `pause()`s when it leaves. Hidden panels are
-  skipped via `offsetParent === null`, so on phones only the first clip is ever
-  fetched — verified: one request for `leftLady_loop.webm`, none for the others.
-- **Layout:** 3-up grid on desktop; on phones (`≤768px`) only the **first** clip
-  shows full-bleed (`nth-child(n+2)` hidden) at the design's 375 × 687 ratio —
-  three strips would be far too narrow at that width.
+  ~200px of the viewport, and `pause()`s when it leaves.
+- **Layout:** one full-bleed video; on phones (`≤768px`) the section takes the
+  design's 375 × 687 ratio and the portrait encode fills it.
 - **Width:** the section is capped at `--max-content` (1440) rather than
   full-bleed, so it centres on wider displays.
-- **Placeholder:** `.action-cta__video { background: #d5a461 }` (sampled from the
-  gold backdrop) avoids a black flash before the first frame paints.
-- **Reduced motion:** `initCtaVideos()` bails and the CSS hides the videos,
-  showing `cta-people.png` (desktop) / `cta-mobile.jpg` (mobile) as a
-  `background-image` scoped to the media query — so those images are only
-  fetched by reduced-motion users.
-- **If you swap the clips:** keep the seamless empty-stool loop point, re-export
-  both WebM + MP4, and keep them small (right lady is the heaviest at ~1.4 MB
-  WebM). There is no ffmpeg on this machine by default — see DEBUGGING.md.
+- **Placeholder:** `.action-cta__video { background: #6f7472 }` avoids a black
+  flash before the poster paints.
+- **Reduced motion:** `initCtaVideos()` bails before calling `play()`. The
+  poster frame **is** the fallback — the video element still lays out and paints
+  it — so nothing extra downloads.
+- **If you swap the clip:** re-export all three tiers as WebM + MP4, re-read the
+  `avcC` codec strings rather than copying the old ones, and `+faststart` the
+  MP4s. There is no ffmpeg on this machine by default — see DEBUGGING.md.
 
 ## 13. Footer partner carousel
 

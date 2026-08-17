@@ -1149,17 +1149,57 @@ function initMobileNav() {
   });
 }
 
-// Lazy-load the CTA background videos: with preload="none" + no autoplay
+// Lazy-load the CTA background video: with preload="none" + no autoplay
 // attribute, nothing downloads until we call play() as the section nears the
 // viewport. Pause when it leaves to save CPU/battery. Reduced-motion users
-// never load them (the CSS shows a static image instead). Hidden videos
-// (the 2nd/3rd on mobile) are skipped, so only what's on screen downloads.
+// never load it (the poster frame stands in instead).
 function initCtaVideos() {
   const section = document.querySelector('.action-cta');
   if (!section) return;
 
   const videos = [...section.querySelectorAll('.action-cta__video')];
   if (!videos.length || prefersReducedMotion) return;
+
+  // Three encodes, picked by viewport:
+  //   ≤768   portrait 374x686 (1.5MB) — the section is portrait here, so this is
+  //          a purpose-shot crop, not the landscape master squeezed by `cover`
+  //   ≤1024  landscape 960-wide (2.2MB) — still landscape, but a big viewport's
+  //          worth of pixels is wasted on a tablet
+  //   else   landscape 1440 master (5.3MB)
+  //
+  // Done in JS rather than `media` on <source>, which not every browser honours —
+  // getting that wrong would serve the smallest file to desktops. Safe to rewrite
+  // srcs here because `preload="none"` means nothing has been requested yet.
+  const tier = window.matchMedia('(max-width: 768px)').matches
+    ? 'Portrait'
+    : window.matchMedia('(max-width: 1024px)').matches
+      ? 'Sm'
+      : null;
+
+  if (tier) {
+    videos.forEach((video) => {
+      const webm = video.dataset[`srcWebm${tier}`];
+      const mp4 = video.dataset[`srcMp4${tier}`];
+      const mp4Type = video.dataset[`typeMp4${tier}`];
+      if (!webm && !mp4) return;
+      video.querySelectorAll('source').forEach((source) => {
+        // startsWith, not ===: the types carry codec strings.
+        if (source.type.startsWith('video/webm')) {
+          if (webm) source.src = webm;
+        } else if (mp4) {
+          source.src = mp4;
+          // Each encode is a different H.264 level, so the codec string differs —
+          // leaving the 1440 one here would misdeclare the file.
+          if (mp4Type) source.type = mp4Type;
+        }
+      });
+      // The portrait clip needs its own poster; the landscape one would letterbox.
+      if (tier === 'Portrait' && video.dataset.posterPortrait) {
+        video.poster = video.dataset.posterPortrait;
+      }
+      video.load();
+    });
+  }
 
   const observer = new IntersectionObserver(
     (entries) => {
