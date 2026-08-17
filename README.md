@@ -43,12 +43,14 @@ css/
 js/
   main.js          # Carousel, program finder, and all scroll/reveal animations
 public/assets/     # Committed image assets (SVG / PNG / JPG / WebP)
-  videos/          # CTA band background videos (MP4 + WebM)
+  videos/          # CTA band background clip — 3 encodes, each MP4 + WebM
 HANDOFF.md         # Engineering handoff: gotchas, breakpoints, asset contracts
 ```
 
 `js/main.js` is a set of small `init*` functions, all called on
-`DOMContentLoaded` and all gated on `prefers-reduced-motion`:
+`DOMContentLoaded`. The motion ones bail early on `prefers-reduced-motion`; the
+navigation and form ones always run, since they're behaviour rather than
+animation:
 
 | Function | Responsibility |
 | --- | --- |
@@ -58,7 +60,9 @@ HANDOFF.md         # Engineering handoff: gotchas, breakpoints, asset contracts
 | `initCountUp` | Stat numbers counting up |
 | `initParallax` / `initHeroParallax` / `initContentParallax` / `initCardScroll` | Scroll-driven motion (content band, hero red wall, hero + program-finder drift, carousel card slide-in) |
 | `initNavScroll` / `initMobileNav` | Sticky-nav shrink; hamburger panel |
-| `initCtaVideos` | Background videos in the CTA band |
+| `initMegaMenu` / `initMobileMenuTree` | Desktop dropdown positioning; the mobile panel's nested menus |
+| `initCtaVideos` | Background video in the CTA band — encode tier, lazy-load, pause offscreen |
+| `initFooterPartners` | Footer brand carousel — manual arrows, paging by a whole view |
 
 ## Assets
 
@@ -71,16 +75,23 @@ before replacing them:
 
 - **`hero-red.webp` + `hero-people.webp`** — the hero is split into two layers so
   the red wall can parallax while the people stay still.
-- **`carousel-portrait-*.webp`** — pre-cut transparent portraits sized to the
-  carousel card, and intentionally *taller* than the card because each person
+- **`carousel-portrait-faculty.webp`** — a pre-cut transparent portrait sized to
+  the carousel card, and intentionally *taller* than the card because the figure
   breaks out above its top edge.
+- **`wnba-capella-lockup*.webp`** — the partnership card's artwork. The logos,
+  the divider rule *and* the "official higher learning partner" line are all
+  baked into one image, so the `alt` text is the only accessible copy of that
+  line. Two crops (wide / stacked), picked by a `<picture>` `media` query.
 
 ## Design source
 
 - [Figma — Hi-fi Review](https://www.figma.com/design/6tdLZrCAiMSii7sMAUrRDs/Hi-fi---Review?node-id=5647-5140)
   — the homepage overall.
 - [Figma — Card Update](https://www.figma.com/design/vkdlGCLzDrSK1crS3ZtT5A/Card-Update?node-id=6-194)
-  — the featured-story cards (v2 rebuilt these against this file).
+  — the featured-story cards (v2 rebuilt these against this file). The WNBA
+  partnership card is
+  [`55-62`](https://www.figma.com/design/vkdlGCLzDrSK1crS3ZtT5A/Card-Update?node-id=55-62)
+  (desktop + mobile in one frame).
 - **Jake's page updates** —
   [Figma — UI Elements for Homepage Proto](https://www.figma.com/design/h3IvZdQj2uH5bm7JPUD89a/UI-Elements-for-Homepage-Proto?node-id=50-21184)
   — the nav dropdown and its activated state, button and chip states, the closing

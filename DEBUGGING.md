@@ -162,6 +162,16 @@ width: max-content;
 max-width: calc(100% - 48px);
 ```
 
+**Same symptom, different cause: a fixed `width` copied from the design.** The
+WNBA card's pill is an explicit `194 × 48` in Figma, so the CSS pinned
+`width: 194px`. That width was measured against the label the design shipped
+with; a longer one wrapped to a second line and grew the pill to 72px tall. If a
+button's *height* changed when you only touched its text, this is why.
+
+**Fix.** Use `min-width`, so the design's width is a floor and a longer label
+pushes the box out instead of wrapping. Check the rendered height, not just the
+width — a wrapped pill still reports the width you asked for.
+
 ---
 
 ## 5. Start of a scrollable strip is cut off
@@ -272,8 +282,10 @@ Nothing touches remote state.
 | A file deleted in an earlier commit | `git checkout <sha>~1 -- <path>` |
 | A broken serve directory | Rebuild — see [section 1](#1-edits-dont-show-up) |
 
-The old CTA clips and `cta-people.png` / `cta-mobile.jpg` were removed in the
-megamenu commit; recover them with the `git checkout` form above if needed.
+The three gold-backdrop CTA clips and their `cta-people.png` / `cta-mobile.jpg`
+stills have been deleted twice and restored once, so `git log --diff-filter=D --
+public/assets/videos/` is the reliable way to find the right `<sha>` for the
+`git checkout` form above. As of the latest deletion they live only in history.
 
 ## Escalation
 

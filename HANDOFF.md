@@ -14,7 +14,8 @@ What changed from v1, and where the details are:
 
 | Area | Change | §  |
 | --- | --- | --- |
-| Featured-story cards | Rebuilt to the **Card Update** Figma (`1440 × 600`, new copy and people, Figma-variable type scale, portraits that break out above the card) | §3, §6 |
+| Featured-story cards | Rebuilt to the **Card Update** Figma (`1440 × 600`, new copy and people, Figma-variable type scale, a portrait that breaks out above the card). Slide 2 is now the **WNBA partnership card**, not an alumni testimonial | §3, §6 |
+| Closing CTA | A single full-bleed TV-spot clip in three encodes, picked by viewport, replacing the three gold-backdrop loops | §12 |
 | Hero | Two-layer red-wall parallax; `initContentParallax` rewritten to be scroll-keyed so the headline no longer rides up over the faces | §3a, §7 |
 | Carousel motion | Scroll-driven, ratcheted card slide-in (the card's text does not animate) | §7 |
 | Nav | Rounded pill hover with full press / keyboard-focus states; scroll shrink now uses hysteresis | §5 |
@@ -57,7 +58,7 @@ js/
   main.js         # All interactivity + animations (init* functions)
 public/
   assets/         # Images + SVGs (served from /assets/... at runtime)
-    videos/       # CTA band background loops (MP4 + WebM) — see §12
+    videos/       # CTA band background clip, 3 encodes x (MP4 + WebM) — see §12
 ```
 
 - `public/` is Vite's static dir, so files there are referenced with an
@@ -182,7 +183,7 @@ don't go hunting for the code that uses them:
 | `footer-logos-strip.png`, `footer-partners-strip.png` | ~46 KB | The old flat 4320×210 strip, with the arrows *painted into the image*. Superseded by the carousel; kept as the slice source for `partners/{devmountain,sophia}.png`. |
 | `footer-arrow-{next,prev}.svg` | ~0 KB | Empty files. |
 | `cta-1/2/3.png` | ~2.2 MB | Legacy, see above. |
-| `carousel-portrait-alumni.webp` | ~40 KB | Dr. Compton Moore — the alumni slide became the WNBA partnership card (§9). |
+| `carousel-portrait-alumni.webp` | ~40 KB | Dr. Compton Moore — the alumni slide became the WNBA partnership card (§6). |
 
 Everything except `hero.png` is safe to delete; that's ~14.9 MB of the repo's
 ~40 MB of assets. Left in place because a few are plausible future art rather
@@ -207,7 +208,8 @@ Mobile-first base styles, with these override breakpoints (see `styles.css`):
 | `max-width: 1023px` | **Phone/tablet carousel layout** (fixed `294 × 583` aspect card, absolutely-positioned elements scaled via container query) |
 | `max-width: 1024px` | Tablet: hamburger nav, **program-finder top is the row layout** (title beside 2×2 chips) |
 | `min-width: 641px and max-width: 1199px` | **Tablet/large-phone hero**: floor raised to **520px** (capped `--hero-height-tablet-max` = 640) — the headline is ~98px here, so a short hero would let it ride onto the faces; the 520 floor keeps it on the torsos (finder scrolls below the fold on short viewports, like mobile) |
-| `min-width: 1024px` | **Wide carousel layout** (`1440 × 600` card; the portraits and the phone overflow above the card top) |
+| `min-width: 768px` | Tablet hero padding + a tighter `--hero-fold-reserve` (the nav is 72px here, not 112) |
+| `min-width: 1024px` | **Wide carousel layout** (`1440 × 600` card; the faculty portrait and the phone overflow above the card top) |
 | `min-width: 1200px` | Desktop refinements: hero capped at **755px** (`--hero-height`, Figma) + 4-across program-finder chips, content-band bg crop, etc. |
 | `max-width: 1280px` / `min-width: 1920px` | `--page-gutter` adjustments only (in `tokens.css`) |
 
@@ -376,8 +378,9 @@ matches production; the `href`s are all `#` because this is a single page.
   of degree levels on the left driving a light panel of areas of study on the
   right, plus the red *Find your program* CTA. Left rail is `role="tablist"`,
   each level a `role="tab"` owning a `role="tabpanel"`.
-- **Capella Experience / Financing / Admissions** are single-row
-  (`.megamenu__inner--columns`): grouped link lists, one column per group.
+- **Capella Experience / Financing / Admissions** are the narrow single-column
+  ones (`.megamenu--list`): a 300px stack of grouped link lists, centred under
+  their trigger.
 - Only the **areas** level is reproduced under each degree level, not the
   individual programs (capella.edu reveals those at a third level). That
   matches the reference screenshot and keeps `index.html` reasonable — the full
@@ -388,7 +391,7 @@ Gotchas:
   absolutely positioned against `.main-nav` (sticky, so it's the containing
   block) to span the full header width. Give the `li` `position: relative` and
   the panel collapses into that one nav item's box.
-- ⚠️ **`.megamenu[hidden] { display: none }` is required.** `.megamenu__inner`
+- ⚠️ **`.megamenu[hidden] { display: none }` is required.** `.megamenu` itself
   sets `display: flex`, which otherwise beats the `hidden` attribute and the
   panels never close.
 - Triggers stay `<a aria-haspopup>` rather than `<button>` — this is what
@@ -460,7 +463,8 @@ heads on wide viewports. If you ever reintroduce one, re-check head-cropping at
       card.
   - **≥1024px:** card is `1440 × 600` — the card **is** the panel (the old
     `1440 × 642` box with a 42px top inset is gone). `overflow: visible`, so the
-    portrait figures intentionally **extend above** the card top.
+    faculty portrait and the student card's phone intentionally **extend above**
+    the card top.
     - **Content is anchored to exact Figma coordinates**, not flex gaps. Each
       slide's content (`--student` / `--partner` / `--faculty` modifier on
       `.carousel__content`) absolutely positions its title / body / attribution /
@@ -469,9 +473,15 @@ heads on wide viewports. If you ever reintroduce one, re-check head-cropping at
 
       | | title | body / attribution | button |
       |---|---|---|---|
-      | student | 184 | 254 | 346 |
-      | partner | — | lockup 77 (992 wide) | 450 |
-      | faculty | 184 | name 337 · role 375 | 463 |
+      | student | 181 | 328 | 416 |
+      | partner | — | lockup 77 (992 wide) | 478 |
+      | faculty | 158 | name 343 · role 387 | 461 |
+
+      The faculty quote runs to four lines and the student headline to two, so
+      their titles start at different Y — the design lands them on a shared ink
+      bottom rather than a shared top. The role sits 44 below the name: the 36px
+      name line box (40 × 0.9) plus the design's 8px auto-layout gap, written
+      into the Y because the offsets are absolute.
 
       The student and faculty columns start at `x 758` and are `600` wide (the
       student body alone is `557`, which is what makes it wrap where the design
@@ -486,10 +496,13 @@ heads on wide viewports. If you ever reintroduce one, re-check head-cropping at
       bold. The quote is **not** the big condensed display face; if it starts
       rendering as large uppercase display type, a `.carousel__title` override
       has crept back in.
-    - **Buttons** ("Is FlexPath right for you?", "Get in the game", "Full bio")
-      are scaled to the Figma `60px` pill (`padding 16/28`, `font 20`,
-      `radius 32`) via `--px` — do **not** let them fall back to the unscaled
-      `.btn--lg`, which stretches full-width.
+    - **Buttons** ("Is FlexPath right for you?", "Join the dream team",
+      "Full bio") are scaled to the Figma `60px` pill (`padding 16/28`,
+      `font 20`, `radius 32`) via `--px` — do **not** let them fall back to the
+      unscaled `.btn--lg`, which stretches full-width. The partner pill carries
+      a `min-width` rather than a fixed width at both breakpoints: the design's
+      194 (mobile) / 211 (desktop) were measured against a shorter label, and a
+      fixed box wraps a longer one onto a second line.
     - **Portrait sizing.** The assets are pre-cut at exact card scale, so each
       `.carousel__portrait` is simply `left: 0` at its asset's own dimensions
       with `object-fit: fill` and a **negative `top`** for the overhang (faculty
@@ -642,9 +655,11 @@ All live in `main.js`, initialized on `DOMContentLoaded`. Every one is
   with the rest. If you re-export these, keep them ≲1200px on the long edge.
 
 ### Suggested next steps (not yet done)
-- Convert large PNGs (`hero.png`, `content-band-desk.png`, carousel portraits,
-  `cta-*.png`) to **WebP/AVIF** with PNG fallback via `<picture>`. These are the
-  biggest payloads on the page. (The tiles are now reasonable — see above.)
+- Convert the remaining large PNGs (`content-band-desk.png`,
+  `carousel-phone-mockup.png`) to **WebP/AVIF** with a PNG fallback via
+  `<picture>`. These are the biggest image payloads left; the carousel portrait
+  and the hero layers are already WebP. (The tiles are now reasonable — see
+  above.)
 - Add `srcset`/`sizes` for the hero and CTA art to serve smaller files to phones.
 - Self-host fonts (or add `&display=swap` is already set for Inter) and consider
   preloading the primary display font to reduce FOUT on the hero headline.
@@ -686,7 +701,8 @@ browsers:
 | Sticky header offsets | `.utility-bar` / `.main-nav` `top`/`z-index` (§5) |
 | Program-finder dropdown options | `SPECIALIZATIONS` map in `js/main.js` |
 | "See all Capella programs" button alignment | `.stats-section__cta { align-self }` (right-aligned/flush with cards on desktop) |
-| CTA background videos | `.action-cta__video` markup in `index.html` + `initCtaVideos()` in `js/main.js` (§12) |
+| CTA background video (clip, encodes, tiers) | `.action-cta__video` markup in `index.html` + `initCtaVideos()` in `js/main.js` (§12) |
+| A carousel slide's content or layout | the `<article data-slide="N">` in `index.html` + its `.carousel__content--{student,partner,faculty}` rules in both carousel `@media` blocks (§6) |
 
 ---
 
@@ -735,7 +751,7 @@ deleted and live only in git history now.
 
 ## 13. Footer partner carousel
 
-The five Strategic Education brand logos sit in a real carousel, mirroring the
+The ten Strategic Education brand logos sit in a real carousel, mirroring the
 behaviour on capella.edu: **manual arrows only, no autoplay**, paging by a whole
 view.
 
@@ -744,9 +760,10 @@ view.
   reads that value back out of the computed style, so adding a breakpoint means
   touching CSS only.
 - **Arrows disable rather than hide** at each end, so the viewport width never
-  changes and the logos don't shift. With 5 logos in 6 desktop slots everything
-  fits, so both arrows are correctly disabled there; they become active as soon
-  as a 6th brand is added.
+  changes and the logos don't shift. With 10 logos and 6 desktop slots there are
+  two pages, so "next" is live on load and "prev" only enables once you page.
+  If the brand count ever drops to `--per-view` or below, both arrows sit
+  disabled — that's correct, not a broken carousel.
 - `aria-hidden` and `tabindex` track which slides are in view, so off-screen
   logos aren't announced or tab-focusable.
 - **Logo provenance is not what the filenames suggest** — see §3d. Devmountain
