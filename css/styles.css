@@ -2960,10 +2960,14 @@ button {
   /* This card's button is an explicit 194x48 in the design rather than hugging
      its label. Both numbers stay unscaled, like every other mobile card button
      here — scaling only the width would stretch the pill out of proportion as
-     the card grows on tablets. */
+     the card grows on tablets.
+     ⚠️ `min-width`, not `width`: the design's 194 was measured against "Get in
+     the game", and a fixed box wrapped the longer label onto three lines and
+     grew the pill to 72px tall. This keeps 194 as the floor and lets a longer
+     label push it out instead. */
   .carousel__content--partner .btn {
     top: calc(490 * var(--px));
-    width: 194px;
+    min-width: 194px;
   }
 }
 
